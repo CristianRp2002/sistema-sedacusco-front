@@ -1,0 +1,57 @@
+<div class="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
+    
+    <div class="bg-blue-800 p-8 text-center">
+      <h2 class="text-3xl font-extrabold text-white tracking-wide">SEDACUSCO</h2>
+      <p class="text-blue-200 mt-2 text-sm font-medium">Panel de Administración Web</p>
+    </div>
+
+    <div class="p-8">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-2">Usuario</label>
+          <input formControlName="username" type="text" 
+            class="w-full px-4 py-3 rounded-lg border outline-none transition-all duration-300"
+            [ngClass]="{
+              'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200': !(loginForm.get('username')?.invalid && loginForm.get('username')?.touched),
+              'border-red-500 bg-red-50 focus:border-red-600 focus:ring-2 focus:ring-red-200': loginForm.get('username')?.invalid && loginForm.get('username')?.touched
+            }"
+            placeholder="Ej: admin">
+          
+          <div *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched" class="text-red-500 text-xs mt-1.5 font-medium">
+            El usuario es requerido (mínimo 3 caracteres).
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-2">Contraseña</label>
+          <input formControlName="password" type="password" 
+            class="w-full px-4 py-3 rounded-lg border outline-none transition-all duration-300"
+            [ngClass]="{
+              'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200': !(loginForm.get('password')?.invalid && loginForm.get('password')?.touched),
+              'border-red-500 bg-red-50 focus:border-red-600 focus:ring-2 focus:ring-red-200': loginForm.get('password')?.invalid && loginForm.get('password')?.touched
+            }"
+            placeholder="••••••••">
+            
+          <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-xs mt-1.5 font-medium">
+            La contraseña debe tener al menos 6 caracteres.
+          </div>
+        </div>
+
+        <div *ngIf="errorLogin" class="bg-red-100 border-l-4 border-red-500 p-4 rounded-md">
+          <p class="text-sm text-red-700 font-bold">⚠️ Credenciales incorrectas o servidor apagado.</p>
+        </div>
+
+        <button type="submit" 
+          [disabled]="isLoading"
+          class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 px-4 rounded-lg transition-colors duration-300 shadow-md disabled:bg-blue-400 flex justify-center items-center">
+          <span *ngIf="!isLoading">Ingresar al Sistema</span>
+          <span *ngIf="isLoading" class="animate-pulse">Verificando datos...</span>
+        </button>
+        
+      </form>
+    </div>
+    
+  </div>
+</div>

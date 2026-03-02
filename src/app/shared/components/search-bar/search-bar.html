@@ -1,0 +1,16 @@
+<div class="bg-white rounded-2xl px-5 py-4 flex items-center gap-4 border border-gray-100"
+  style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+  <div class="flex items-center gap-2 flex-1 px-3 py-2 rounded-xl" style="background: #f8fafc;">
+    <span class="material-icons text-gray-400" style="font-size: 18px;">search</span>
+    <input type="text" [placeholder]="placeholder"
+      class="flex-1 bg-transparent text-sm outline-none" style="color: #1e293b;"
+      (input)="buscar.emit($any($event.target).value)">
+  </div>
+  <select *ngIf="filtros.length > 0"
+    class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
+    style="border-color: #e2e8f0; color: #475569;"
+    (change)="filtrar.emit($any($event.target).value)">
+    <option value="">{{ filtroLabel }}</option>
+    <option *ngFor="let f of filtros" [value]="f.valor">{{ f.label }}</option>
+  </select>
+</div>

@@ -1,0 +1,214 @@
+<div class="space-y-6">
+
+  <!-- Encabezado -->
+  <app-page-header
+    seccion="Gestión"
+    titulo="Estaciones"
+    subtitulo="Administra las estaciones, bombas y tableros"
+    botonTexto="Nueva Estación"
+    botonIcono="add_location"
+    (botonClick)="abrirModalEstacion()">
+  </app-page-header>
+
+  <!-- Buscador -->
+  <app-search-bar
+    placeholder="Buscar estación..."
+    (buscar)="filtrarTexto($event)">
+  </app-search-bar>
+
+  <!-- Lista de estaciones -->
+  <div class="space-y-4">
+    <div *ngFor="let estacion of estacionesFiltradas"
+      class="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+
+      <!-- Cabecera de estación -->
+      <div class="px-6 py-4 flex items-center justify-between" style="border-bottom: 1px solid #f1f5f9;">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+            style="background: linear-gradient(135deg, #001F4E, #0072BC);">
+            <span class="material-icons text-white" style="font-size: 20px;">factory</span>
+          </div>
+          <div>
+            <h4 class="font-black" style="color: #001F4E;">{{ estacion.nombre }}</h4>
+            <p class="text-xs" style="color: #94a3b8;">
+              {{ estacion.bombas?.length || 0 }} bombas · {{ estacion.tableros?.length || 0 }} tableros
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button (click)="abrirModalBomba(estacion)"
+            class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-bold transition-all hover:shadow-md"
+            style="background: #f0fdf4; color: #16a34a;">
+            <span class="material-icons" style="font-size: 15px;">add</span>
+            Bomba
+          </button>
+          <button (click)="abrirModalTablero(estacion)"
+            class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-bold transition-all hover:shadow-md"
+            style="background: #eff6ff; color: #0072BC;">
+            <span class="material-icons" style="font-size: 15px;">add</span>
+            Tablero
+          </button>
+          <button (click)="editarEstacion(estacion)"
+            class="p-2 rounded-xl transition-all hover:shadow-md"
+            style="background: #f8fafc; color: #475569;">
+            <span class="material-icons" style="font-size: 18px;">edit</span>
+          </button>
+          <button (click)="eliminarEstacion(estacion)"
+            class="p-2 rounded-xl transition-all hover:shadow-md"
+            style="background: #fef2f2; color: #dc2626;">
+            <span class="material-icons" style="font-size: 18px;">delete</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bombas y Tableros -->
+      <div class="grid grid-cols-2 divide-x divide-gray-50">
+
+        <!-- Bombas -->
+        <div class="p-4">
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #94a3b8;">Bombas</p>
+          <div *ngIf="estacion.bombas?.length === 0" class="text-xs text-gray-400">Sin bombas registradas</div>
+          <div *ngFor="let bomba of estacion.bombas" class="flex items-center justify-between py-2"
+            style="border-bottom: 1px solid #f8fafc;">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full"
+                [ngStyle]="bomba.activa ? {background: '#22c55e'} : {background: '#dc2626'}"></span>
+              <span class="text-sm font-medium" style="color: #1e293b;">{{ bomba.nombre }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button (click)="editarBomba(bomba, estacion)"
+                class="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                style="color: #0072BC;">
+                <span class="material-icons" style="font-size: 14px;">edit</span>
+              </button>
+              <button (click)="eliminarBomba(bomba, estacion)"
+                class="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                style="color: #dc2626;">
+                <span class="material-icons" style="font-size: 14px;">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tableros -->
+        <div class="p-4">
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #94a3b8;">Tableros</p>
+          <div *ngIf="estacion.tableros?.length === 0" class="text-xs text-gray-400">Sin tableros registrados</div>
+          <div *ngFor="let tablero of estacion.tableros" class="flex items-center justify-between py-2"
+            style="border-bottom: 1px solid #f8fafc;">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full"
+                [ngStyle]="tablero.activo ? {background: '#22c55e'} : {background: '#dc2626'}"></span>
+              <span class="text-sm font-medium" style="color: #1e293b;">{{ tablero.nombre }}</span>
+              <span *ngIf="tablero.tipo" class="text-xs px-2 py-0.5 rounded-full"
+                style="background: #f1f5f9; color: #64748b;">{{ tablero.tipo }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button (click)="editarTablero(tablero, estacion)"
+                class="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                style="color: #0072BC;">
+                <span class="material-icons" style="font-size: 14px;">edit</span>
+              </button>
+              <button (click)="eliminarTablero(tablero, estacion)"
+                class="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                style="color: #dc2626;">
+                <span class="material-icons" style="font-size: 14px;">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sin estaciones -->
+    <div *ngIf="estacionesFiltradas.length === 0"
+      class="bg-white rounded-2xl border border-gray-100 px-6 py-12 text-center"
+      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+      <span class="material-icons text-4xl" style="color: #cbd5e1;">location_off</span>
+      <p class="text-sm font-medium mt-2" style="color: #94a3b8;">No se encontraron estaciones</p>
+    </div>
+  </div>
+
+  <!-- Modal Estación -->
+<app-modal
+    [abierto]="modalEstacionAbierto"
+    [titulo]="estacionEditando ? 'Editar Estación' : 'Nueva Estación'"
+    subtitulo="Ingresa el nombre de la estación"
+    (cerrar)="cerrarModales()">
+    <form [formGroup]="estacionForm" (ngSubmit)="guardarEstacion()" class="space-y-4">
+      <app-form-input
+        label="Nombre"
+        placeholder="Ej: Est. Pumaqchupan"
+        formControlName="nombre">
+      </app-form-input>
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="cerrarModales()"
+          class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
+          style="border-color: #e2e8f0; color: #64748b;">Cancelar</button>
+        <button type="submit" [disabled]="estacionForm.invalid"
+          class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+          style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
+          {{ estacionEditando ? 'Guardar cambios' : 'Crear estación' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+
+  <!-- Modal Bomba -->
+  <app-modal
+    [abierto]="modalBombaAbierto"
+    [titulo]="bombaEditando ? 'Editar Bomba' : 'Nueva Bomba'"
+    subtitulo="Ingresa los datos de la bomba"
+    (cerrar)="cerrarModales()">
+    <form [formGroup]="bombaForm" (ngSubmit)="guardarBomba()" class="space-y-4">
+      <app-form-input
+        label="Nombre"
+        placeholder="Ej: Electro Bomba N° 1"
+        formControlName="nombre">
+      </app-form-input>
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="cerrarModales()"
+          class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
+          style="border-color: #e2e8f0; color: #64748b;">Cancelar</button>
+        <button type="submit" [disabled]="bombaForm.invalid"
+          class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+          style="background: linear-gradient(135deg, #16a34a, #22c55e);">
+          {{ bombaEditando ? 'Guardar cambios' : 'Agregar Bomba' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+
+  <!-- Modal Tablero -->
+  <app-modal
+    [abierto]="modalTableroAbierto"
+    [titulo]="tableroEditando ? 'Editar Tablero' : 'Nuevo Tablero'"
+    subtitulo="Ingresa los datos del tablero"
+    (cerrar)="cerrarModales()">
+    <form [formGroup]="tableroForm" (ngSubmit)="guardarTablero()" class="space-y-4">
+      <app-form-input
+        label="Nombre"
+        placeholder="Ej: Tablero General"
+        formControlName="nombre">
+      </app-form-input>
+      <app-form-input
+        label="Tipo"
+        placeholder="Ej: Control, Telemetría"
+        [opcional]="true"
+        formControlName="tipo">
+      </app-form-input>
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="cerrarModales()"
+          class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
+          style="border-color: #e2e8f0; color: #64748b;">Cancelar</button>
+        <button type="submit" [disabled]="tableroForm.invalid"
+          class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+          style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
+          {{ tableroEditando ? 'Guardar cambios' : 'Agregar Tablero' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+</div>

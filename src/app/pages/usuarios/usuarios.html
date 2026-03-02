@@ -1,0 +1,166 @@
+<div class="space-y-6">
+
+  <!-- Encabezado compartido -->
+  <app-page-header
+    seccion="Gestión"
+    titulo="Usuarios"
+    subtitulo="Administra los usuarios del sistema"
+    botonTexto="Nuevo Usuario"
+    botonIcono="person_add"
+    (botonClick)="abrirModal()">
+  </app-page-header>
+
+  <!-- Buscador compartido -->
+  <app-search-bar
+    placeholder="Buscar por nombre o usuario..."
+    filtroLabel="Todos los roles"
+    [filtros]="[
+      {valor: 'ADMIN', label: 'Administrador'},
+      {valor: 'OPERARIO', label: 'Operario'},
+      {valor: 'JEFE', label: 'Jefe'}
+    ]"
+    (buscar)="filtrarTexto($event)"
+    (filtrar)="filtrarRol($event)">
+  </app-search-bar>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden" style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+    <table class="w-full text-sm">
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 1px solid #f1f5f9;">
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Usuario</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Username</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Rol</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Estado</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Creado</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let usuario of usuariosFiltrados"
+          class="transition-colors duration-150" style="border-top: 1px solid #f8fafc;"
+          onmouseover="this.style.background='#f8fafc'"
+          onmouseout="this.style.background='white'">
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black text-white shrink-0"
+                style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
+                {{ usuario.nombre_completo.charAt(0).toUpperCase() }}
+              </div>
+              <span class="font-bold" style="color: #1e293b;">{{ usuario.nombre_completo }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 font-medium" style="color: #475569;">{{ usuario.username }}</td>
+          <td class="px-6 py-4">
+            <app-status-badge tipo="rol" [valor]="usuario.rol?.nombre"></app-status-badge>
+          </td>
+          <td class="px-6 py-4">
+            <app-status-badge tipo="activo" [valor]="usuario.activo"></app-status-badge>
+          </td>
+          <td class="px-6 py-4 font-medium" style="color: #94a3b8;">{{ usuario.created_at | date:'dd/MM/yyyy' }}</td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <button (click)="editarUsuario(usuario)"
+                class="p-2 rounded-lg transition-all hover:shadow-md"
+                style="color: #0072BC; background: #eff6ff;" title="Editar">
+                <span class="material-icons" style="font-size: 16px;">edit</span>
+              </button>
+              <button (click)="toggleEstado(usuario)"
+                class="p-2 rounded-lg transition-all hover:shadow-md"
+                [ngStyle]="usuario.activo ? {color: '#dc2626', background: '#fef2f2'} : {color: '#16a34a', background: '#f0fdf4'}"
+                [title]="usuario.activo ? 'Desactivar' : 'Activar'">
+                <span class="material-icons" style="font-size: 16px;">{{ usuario.activo ? 'person_off' : 'person' }}</span>
+              </button>
+              <button (click)="eliminarUsuario(usuario)"
+                class="p-2 rounded-lg transition-all hover:shadow-md"
+                style="color: #dc2626; background: #fef2f2;" title="Eliminar">
+                <span class="material-icons" style="font-size: 16px;">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="usuariosFiltrados.length === 0">
+          <td colspan="6" class="px-6 py-12 text-center">
+            <span class="material-icons text-4xl" style="color: #cbd5e1;">person_search</span>
+            <p class="text-sm font-medium mt-2" style="color: #94a3b8;">No se encontraron usuarios</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal compartido -->
+  <app-modal
+    [abierto]="modalAbierto"
+    [titulo]="usuarioEditando ? 'Editar Usuario' : 'Nuevo Usuario'"
+    subtitulo="Completa los datos del usuario"
+    (cerrar)="cerrarModal()">
+
+    <form [formGroup]="usuarioForm" (ngSubmit)="guardarUsuario()" class="space-y-4">
+      
+      <app-form-input
+        label="Nombre Completo"
+        placeholder="Ej: Juan Quispe"
+        formControlName="nombre_completo">
+      </app-form-input>
+
+      <app-form-input
+        label="Username"
+        placeholder="Ej: juan.quispe"
+        formControlName="username">
+      </app-form-input>
+
+      <div *ngIf="!usuarioEditando">
+        <app-form-input
+          label="Contraseña"
+          placeholder="Mínimo 6 caracteres"
+          type="password"
+          formControlName="password">
+        </app-form-input>
+      </div>
+
+      <div *ngIf="usuarioEditando">
+        <div class="flex items-center gap-2 mb-2">
+          <input type="checkbox" id="cambiarPassword" (change)="toggleCambiarPassword($event)"
+            class="w-4 h-4 rounded cursor-pointer" style="accent-color: #0072BC;">
+          <label for="cambiarPassword" class="text-xs font-bold cursor-pointer" style="color: #475569;">
+            ¿Cambiar contraseña?
+          </label>
+        </div>
+        <app-form-input *ngIf="mostrarPassword"
+          label="Nueva Contraseña"
+          placeholder="Mínimo 6 caracteres"
+          type="password"
+          formControlName="password">
+        </app-form-input>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Rol</label>
+        <select formControlName="rol_id"
+          class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all font-medium"
+          style="border-color: #e2e8f0; color: #1e293b;"
+          onfocus="this.style.borderColor='#0072BC'"
+          onblur="this.style.borderColor='#e2e8f0'">
+          <option value="" disabled>Selecciona un rol</option>
+          <option *ngFor="let rol of roles" [value]="rol.id">{{ rol.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="cerrarModal()"
+          class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
+          style="border-color: #e2e8f0; color: #64748b;">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="usuarioForm.invalid"
+          class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+          style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
+          {{ usuarioEditando ? 'Guardar cambios' : 'Crear usuario' }}
+        </button>
+      </div>
+
+    </form>
+  </app-modal>
+
+</div>

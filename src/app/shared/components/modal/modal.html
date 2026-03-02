@@ -1,0 +1,20 @@
+<div *ngIf="abierto" class="fixed inset-0 z-50 flex items-center justify-center"
+  style="background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+    
+    <div class="px-6 py-5 flex items-center justify-between" style="border-bottom: 1px solid #f1f5f9;">
+      <div>
+        <h4 class="font-black text-base" style="color: #001F4E;">{{ titulo }}</h4>
+        <p class="text-xs mt-0.5" style="color: #94a3b8;">{{ subtitulo }}</p>
+      </div>
+      <button (click)="cerrar.emit()" class="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+        <span class="material-icons" style="color: #94a3b8;">close</span>
+      </button>
+    </div>
+
+    <div class="px-6 py-5">
+      <ng-content></ng-content>
+    </div>
+
+  </div>
+</div>
