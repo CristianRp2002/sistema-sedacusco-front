@@ -156,18 +156,40 @@
     </form>
   </app-modal>
 
-  <!-- Modal Bomba -->
-  <app-modal
+<!-- Modal Bomba -->
+<app-modal
     [abierto]="modalBombaAbierto"
     [titulo]="bombaEditando ? 'Editar Bomba' : 'Nueva Bomba'"
     subtitulo="Ingresa los datos de la bomba"
     (cerrar)="cerrarModales()">
     <form [formGroup]="bombaForm" (ngSubmit)="guardarBomba()" class="space-y-4">
+
       <app-form-input
         label="Nombre"
         placeholder="Ej: Electro Bomba N° 1"
         formControlName="nombre">
       </app-form-input>
+
+      <app-form-input
+        label="Número de Serie"
+        placeholder="Ej: SB-2024-001"
+        formControlName="numero_serie"
+        [opcional]="true">
+      </app-form-input>
+
+      
+
+      <div>
+        <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Estado</label>
+        <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border" style="border-color: #e2e8f0;">
+          <input type="checkbox" id="bombaActiva" formControlName="activa"
+            class="w-4 h-4 rounded cursor-pointer" style="accent-color: #0072BC;">
+          <label for="bombaActiva" class="text-sm font-medium cursor-pointer" style="color: #1e293b;">
+            Estado de Bomba
+          </label>
+        </div>
+      </div>
+
       <div class="flex gap-3 pt-2">
         <button type="button" (click)="cerrarModales()"
           class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
@@ -178,27 +200,56 @@
           {{ bombaEditando ? 'Guardar cambios' : 'Agregar Bomba' }}
         </button>
       </div>
+
     </form>
   </app-modal>
 
   <!-- Modal Tablero -->
-  <app-modal
+<app-modal
     [abierto]="modalTableroAbierto"
     [titulo]="tableroEditando ? 'Editar Tablero' : 'Nuevo Tablero'"
     subtitulo="Ingresa los datos del tablero"
     (cerrar)="cerrarModales()">
     <form [formGroup]="tableroForm" (ngSubmit)="guardarTablero()" class="space-y-4">
+
       <app-form-input
         label="Nombre"
         placeholder="Ej: Tablero General"
         formControlName="nombre">
       </app-form-input>
       <app-form-input
-        label="Tipo"
-        placeholder="Ej: Control, Telemetría"
-        [opcional]="true"
-        formControlName="tipo">
+        label="Número de Serie"
+        placeholder="Ej: TG-2024-001"
+        formControlName="numero_serie"
+        [opcional]="true">
       </app-form-input>
+
+      <div>
+        <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Tipo</label>
+        <select formControlName="tipo"
+          class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all font-medium"
+          style="border-color: #e2e8f0; color: #1e293b;"
+          onfocus="this.style.borderColor='#0072BC'"
+          onblur="this.style.borderColor='#e2e8f0'">
+          <option value="">Selecciona un tipo</option>
+          <option value="General">General</option>
+          <option value="Control">Control</option>
+          <option value="Telemetría">Telemetría</option>
+          <option value="Bomba">Bomba</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Estado</label>
+        <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border" style="border-color: #e2e8f0;">
+          <input type="checkbox" id="tableroActivo" formControlName="activo"
+            class="w-4 h-4 rounded cursor-pointer" style="accent-color: #0072BC;">
+          <label for="tableroActivo" class="text-sm font-medium cursor-pointer" style="color: #1e293b;">
+            Tablero activo
+          </label>
+        </div>
+      </div>
+
       <div class="flex gap-3 pt-2">
         <button type="button" (click)="cerrarModales()"
           class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
@@ -209,6 +260,7 @@
           {{ tableroEditando ? 'Guardar cambios' : 'Agregar Tablero' }}
         </button>
       </div>
+
     </form>
   </app-modal>
 </div>

@@ -1,0 +1,369 @@
+<div class="min-h-screen p-6" style="background: #F1F5F9;">
+  <app-page-header
+    titulo="Nuevo Parte Diario"
+    subtitulo="Complete todos los campos de la secuencia diaria de operación">
+  </app-page-header>
+
+  <!-- WIZARD PASOS -->
+  <div class="bg-white rounded-2xl shadow-sm border mb-6 p-4" style="border-color: #E2E8F0;">
+    <div class="flex items-center justify-between">
+      <div *ngFor="let paso of [1,2,3,4,5,6]; let i = index"
+        class="flex items-center" [class.flex-1]="i < 5">
+        <button (click)="irAPaso(paso)"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl transition-all text-xs font-bold"
+          [style.background]="pasoActual === paso ? '#0072BC' : pasoActual > paso ? '#DCFCE7' : '#F8FAFC'"
+          [style.color]="pasoActual === paso ? '#fff' : pasoActual > paso ? '#16A34A' : '#94A3B8'"
+          [style.cursor]="paso < pasoActual ? 'pointer' : 'default'">
+          <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
+            [style.background]="pasoActual === paso ? 'rgba(255,255,255,0.3)' : 'transparent'">
+            {{ pasoActual > paso ? '✓' : paso }}
+          </span>
+          <span class="hidden sm:block">
+            {{ ['Datos', 'Inspección', 'Lec. Inicial', 'Bombas', 'Lec. Final', 'Cierre'][i] }}
+          </span>
+        </button>
+        <div *ngIf="i < 5" class="flex-1 h-0.5 mx-1" style="background: #E2E8F0;"></div>
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="guardar()">
+
+    <!-- PASO 1 -->
+    <div *ngIf="pasoActual === 1" class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">Datos Generales</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fecha del Folio</label>
+            <input type="date" formControlName="fecha_folio"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              [style.border-color]="form.get('fecha_folio')?.invalid && form.get('fecha_folio')?.touched ? '#EF4444' : '#E2E8F0'"
+              style="color: #1E293B;">
+            <p *ngIf="form.get('fecha_folio')?.invalid && form.get('fecha_folio')?.touched" class="text-xs mt-1" style="color: #EF4444;">La fecha es obligatoria</p>
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Estación</label>
+            <select formControlName="estacion_id" (change)="onEstacionChange()"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              [style.border-color]="form.get('estacion_id')?.invalid && form.get('estacion_id')?.touched ? '#EF4444' : '#E2E8F0'"
+              style="color: #1E293B;">
+              <option value="">Selecciona una estación</option>
+              <option *ngFor="let e of estaciones" [value]="e.id">{{ e.nombre }}</option>
+            </select>
+            <p *ngIf="form.get('estacion_id')?.invalid && form.get('estacion_id')?.touched" class="text-xs mt-1" style="color: #EF4444;">Selecciona una estación</p>
+          </div>
+        </div>
+        <div *ngIf="estacionSeleccionada" class="mt-4 p-4 rounded-xl" style="background: #F0F9FF; border: 1px solid #BAE6FD;">
+          <p class="text-xs font-bold mb-2" style="color: #0369A1;">Estación seleccionada</p>
+          <div class="flex gap-4 text-xs" style="color: #0369A1;">
+            <span>🔧 {{ estacionSeleccionada.bombas?.length || 0 }} bombas</span>
+            <span>⚡ {{ estacionSeleccionada.tableros?.length || 0 }} tableros</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-bold" style="color: #0F172A;">Operadores de Turno</h3>
+          <button type="button" (click)="agregarOperador()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white" style="background: #0072BC;">+ Agregar</button>
+        </div>
+        <div formArrayName="operadores" class="space-y-3">
+          <div *ngFor="let op of operadoresArray.controls; let i = index" [formGroupName]="i"
+            class="flex items-start gap-3 p-3 rounded-xl" style="background: #F8FAFC;">
+            <span class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-5" style="background: #0072BC;">{{ i + 1 }}</span>
+            <div class="flex-1">
+              <label class="block text-xs font-bold mb-1" style="color: #475569;">{{ ['PRIMER', 'SEGUNDO', 'TERCER'][i] || (i+1)+'°' }} TURNO</label>
+              <input type="text" formControlName="nombre_operador" placeholder="Nombre completo del operador"
+                class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                [style.border-color]="operadorTieneError(i) ? '#EF4444' : '#E2E8F0'" style="color: #1E293B;">
+              <p *ngIf="operadorTieneError(i)" class="text-xs mt-1" style="color: #EF4444;">{{ getMensajeErrorOperador(i) }}</p>
+            </div>
+            <button *ngIf="i >= 3" type="button" (click)="eliminarOperador(i)" class="text-red-400 hover:text-red-600 text-lg mt-4">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div *ngIf="pasoActual === 2">
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">I. Inspección del Sistema de Protección</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Interruptor Llegada 10KV</label>
+            <input type="text" formControlName="interruptor_llegada_10kv_estado" placeholder="Ej: OK, Falla"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Temperatura Transformador (°C)</label>
+            <input type="number" formControlName="transformador_temperatura" placeholder="Ej: 45"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+        </div>
+        <p class="text-xs font-bold mb-3" style="color: #475569;">IND. Tensión de Llegada (KV)</p>
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase R</label><input type="number" formControlName="llegada_fase_R" placeholder="R" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase S</label><input type="number" formControlName="llegada_fase_S" placeholder="S" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase T</label><input type="number" formControlName="llegada_fase_T" placeholder="T" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+        </div>
+        <p class="text-xs font-bold mb-3" style="color: #475569;">Tensión Tablero General (V)</p>
+        <div class="grid grid-cols-3 gap-4">
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase R</label><input type="number" formControlName="tablero_fase_R" placeholder="R" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase S</label><input type="number" formControlName="tablero_fase_S" placeholder="S" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase T</label><input type="number" formControlName="tablero_fase_T" placeholder="T" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div *ngIf="pasoActual === 3" class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">II. Habilitación de Equipos</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Tablero Telemetría</label>
+            <input type="text" formControlName="habilitacion_estado_telemetria" placeholder="Ej: OK, Falla" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Ingreso (LTS)</label>
+            <input type="number" formControlName="habilitacion_presion_ingreso" placeholder="Ej: 28.9" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+        </div>
+        <div *ngIf="getTablerosPorMomento('HABILITACION').length > 0">
+          <p class="text-xs font-bold mb-3" style="color: #475569;">Estado de Tableros</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead><tr style="background: #F8FAFC;">
+                <th class="text-left px-3 py-2 font-bold" style="color: #475569;">TABLERO</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">INTERRUPTOR</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">SELECTOR</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">PARADA EMERG.</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">VARIADOR</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">ALARMA</th>
+              </tr></thead>
+              <tbody formArrayName="tableros">
+                <tr *ngFor="let t of getTablerosPorMomento('HABILITACION'); let i = index" [formGroupName]="getTableroIndex('HABILITACION', i)" class="border-t" style="border-color: #F1F5F9;">
+                  <td class="px-3 py-2 font-medium" style="color: #1E293B;">{{ t.get('tablero_nombre')?.value }}</td>
+                  <td class="px-2 py-2"><input type="text" formControlName="interruptor_estado" placeholder="OK" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                  <td class="px-2 py-2"><input type="text" formControlName="selector_estado" placeholder="Manual" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                  <td class="px-2 py-2"><input type="text" formControlName="parada_emergencia_estado" placeholder="OK" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                  <td class="px-2 py-2"><input type="text" formControlName="variador_estado" placeholder="OK" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                  <td class="px-2 py-2"><input type="text" formControlName="alarma_estado" placeholder="--" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">III. Lectura Inicial</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Hora de Registro</label><input type="time" formControlName="inicial_hora_registro" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Nivel Cisterna EB</label><input type="number" formControlName="inicial_nivel_cisterna" placeholder="Ej: 3.80" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión de Línea</label><input type="number" formControlName="inicial_presion_linea" placeholder="Ej: 0.05" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Totalizador Inicial <span style="color: #EF4444;">*</span></label>
+            <input type="number" formControlName="totalizador_inicial" placeholder="Ej: 1012625374"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              [style.border-color]="form.get('totalizador_inicial')?.invalid && form.get('totalizador_inicial')?.touched ? '#EF4444' : '#E2E8F0'" style="color: #1E293B;">
+            <p *ngIf="form.get('totalizador_inicial')?.invalid && form.get('totalizador_inicial')?.touched" class="text-xs mt-1" style="color: #EF4444;">El totalizador inicial es obligatorio</p>
+          </div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Cisterna Jatun Huaylla</label><input type="number" formControlName="inicial_presion_jatun_huaylla" placeholder="Ej: 2.5" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- PASO 4: BOMBAS con registros múltiples -->
+    <!-- ═══════════════════════════════════ -->
+    <div *ngIf="pasoActual === 4">
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">IV. Encendido y Apagado de Bombas</h3>
+
+        <div *ngIf="bombasArray.length === 0" class="text-center py-8" style="color: #94A3B8;">
+          <p class="text-sm">Selecciona una estación primero para cargar las bombas</p>
+        </div>
+
+        <!-- formArrayName="bombas" — un item por cada bomba de la estación -->
+        <div formArrayName="bombas" class="space-y-6">
+          <div *ngFor="let bomba of bombasArray.controls; let i = index"
+            [formGroupName]="i"
+            class="p-4 rounded-xl border" style="border-color: #BAE6FD; background: #F8FAFC;">
+
+            <!-- Encabezado de la bomba -->
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-sm font-bold" style="color: #0072BC;">
+                🔧 {{ bomba.get('bomba_nombre')?.value }}
+              </p>
+              <!-- Botón para agregar un nuevo registro de encendido/apagado -->
+              <button type="button" (click)="agregarRegistro(i)"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold text-white"
+                style="background: #0072BC;">
+                + Agregar encendido
+              </button>
+            </div>
+
+            <!-- formArrayName="registros" — encendidos/apagados de esta bomba -->
+            <div formArrayName="registros" class="space-y-3">
+              <div *ngFor="let registro of getRegistrosBomba(i).controls; let j = index"
+                [formGroupName]="j"
+                class="p-3 rounded-xl border" style="border-color: #E2E8F0; background: #fff;">
+
+                <!-- Número de registro + botón eliminar -->
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold px-2 py-0.5 rounded-full text-white" style="background: #64748B;">
+                    Registro {{ j + 1 }}
+                  </span>
+                  <button *ngIf="getRegistrosBomba(i).length > 1"
+                    type="button" (click)="eliminarRegistro(i, j)"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full"
+                    style="color: #EF4444; background: #FEF2F2;">
+                    ✕ Eliminar
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold mb-1" style="color: #475569;">Encendido <span style="color:#EF4444">*</span></label>
+                    <input type="time" formControlName="encendido"
+                      class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                      [style.border-color]="registro.get('encendido')?.invalid && registro.get('encendido')?.touched ? '#EF4444' : '#E2E8F0'"
+                      style="color: #1E293B;">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold mb-1" style="color: #475569;">Apagado <span style="color:#EF4444">*</span></label>
+                    <input type="time" formControlName="apagado"
+                      class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                      [style.border-color]="registro.get('apagado')?.invalid && registro.get('apagado')?.touched ? '#EF4444' : '#E2E8F0'"
+                      style="color: #1E293B;">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold mb-1" style="color: #475569;">Horómetro Inicial <span style="color:#EF4444">*</span></label>
+                    <input type="number" formControlName="horometro_inicial" placeholder="0.00"
+                      class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                      [style.border-color]="registro.get('horometro_inicial')?.invalid && registro.get('horometro_inicial')?.touched ? '#EF4444' : '#E2E8F0'"
+                      style="color: #1E293B;">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold mb-1" style="color: #475569;">Horómetro Final <span style="color:#EF4444">*</span></label>
+                    <input type="number" formControlName="horometro_final" placeholder="0.00"
+                      class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                      [style.border-color]="registro.get('horometro_final')?.invalid && registro.get('horometro_final')?.touched ? '#EF4444' : '#E2E8F0'"
+                      style="color: #1E293B;">
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <label class="block text-xs font-bold mb-1" style="color: #475569;">Observación</label>
+                  <input type="text" formControlName="observacion" placeholder="Opcional"
+                    class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                    style="border-color: #E2E8F0; color: #1E293B;">
+                </div>
+              </div>
+            </div>
+            <!-- fin registros -->
+
+          </div>
+        </div>
+        <!-- fin bombas -->
+
+      </div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div *ngIf="pasoActual === 5">
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">V. Lectura Final</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Hora de Registro</label><input type="time" formControlName="final_hora_registro" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Nivel Cisterna EB</label><input type="number" formControlName="final_nivel_cisterna" placeholder="Ej: 3.64" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión de Línea</label><input type="number" formControlName="final_presion_linea" placeholder="Ej: 162.4" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Totalizador Final <span style="color: #EF4444;">*</span></label>
+            <input type="number" formControlName="totalizador_final" placeholder="Ej: 1012627033"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              [style.border-color]="form.get('totalizador_final')?.invalid && form.get('totalizador_final')?.touched ? '#EF4444' : '#E2E8F0'" style="color: #1E293B;">
+            <p *ngIf="form.get('totalizador_final')?.invalid && form.get('totalizador_final')?.touched" class="text-xs mt-1" style="color: #EF4444;">El totalizador final es obligatorio</p>
+          </div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Cisterna Jatun Huaylla</label><input type="number" formControlName="final_presion_jatun_huaylla" placeholder="Ej: 2.5" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Producción Calculada</label>
+            <div class="w-full px-4 py-2.5 rounded-xl border text-sm font-bold" style="border-color: #BAE6FD; background: #F0F9FF; color: #0369A1;">
+              {{ produccionCalculada | number:'1.0-3' }} m³
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div *ngIf="pasoActual === 6" class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">VI. Desactivación de Equipos</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Tablero Telemetría</label><input type="text" formControlName="desactivacion_estado_telemetria" placeholder="Ej: OK" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Ingreso (LTS)</label><input type="number" formControlName="desactivacion_presion_ingreso" placeholder="Ej: 26.4" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+        </div>
+        <div *ngIf="getTablerosPorMomento('DESACTIVACION').length > 0">
+          <p class="text-xs font-bold mb-3" style="color: #475569;">Estado de Tableros</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead><tr style="background: #F8FAFC;">
+                <th class="text-left px-3 py-2 font-bold" style="color: #475569;">TABLERO</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">INTERRUPTOR</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">SELECTOR</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">PARADA EMERG.</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">VARIADOR</th>
+                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">ALARMA</th>
+              </tr></thead>
+              <tbody formArrayName="tableros">
+                <tr *ngFor="let t of getTablerosPorMomento('DESACTIVACION'); let i = index" [formGroupName]="getTableroIndex('DESACTIVACION', i)" class="border-t" style="border-color: #F1F5F9;">
+                  <td class="px-3 py-2 font-medium" style="color: #1E293B;">{{ t.get('tablero_nombre')?.value }}</td>
+                  <td class="px-2 py-2"><input type="text" formControlName="interruptor_estado" placeholder="OK" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                  <td class="px-2 py-2"><input type="text" formControlName="selector_estado" placeholder="Manual" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                  <td class="px-2 py-2"><input type="text" formControlName="parada_emergencia_estado" placeholder="OK" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                  <td class="px-2 py-2"><input type="text" formControlName="variador_estado" placeholder="OK" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                  <td class="px-2 py-2"><input type="text" formControlName="alarma_estado" placeholder="--" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">Resumen del Parte</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="p-3 rounded-xl text-center" style="background: #F0F9FF;"><p class="text-xs font-bold mb-1" style="color: #0369A1;">Estación</p><p class="text-sm font-bold" style="color: #0F172A;">{{ estacionSeleccionada?.nombre || '—' }}</p></div>
+          <div class="p-3 rounded-xl text-center" style="background: #F0FDF4;"><p class="text-xs font-bold mb-1" style="color: #16A34A;">Producción</p><p class="text-sm font-bold" style="color: #0F172A;">{{ produccionCalculada | number:'1.0-3' }} m³</p></div>
+          <div class="p-3 rounded-xl text-center" style="background: #FFF7ED;"><p class="text-xs font-bold mb-1" style="color: #EA580C;">Bombas</p><p class="text-sm font-bold" style="color: #0F172A;">{{ bombasArray.length }}</p></div>
+          <div class="p-3 rounded-xl text-center" style="background: #FDF4FF;"><p class="text-xs font-bold mb-1" style="color: #9333EA;">Operadores</p><p class="text-sm font-bold" style="color: #0F172A;">{{ operadoresArray.length }}</p></div>
+        </div>
+        <div *ngIf="errorMensaje" class="mt-4 p-3 rounded-xl" style="background: #FEF2F2; border: 1px solid #FECACA;">
+          <p class="text-xs font-bold" style="color: #DC2626;">⚠ {{ errorMensaje }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <div class="flex items-center justify-between mt-6">
+      <button type="button" (click)="anteriorPaso()" [disabled]="pasoActual === 1"
+        class="px-6 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50 disabled:opacity-30"
+        style="border-color: #E2E8F0; color: #64748B;">← Anterior</button>
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs font-bold" style="color: #94A3B8;">Paso {{ pasoActual }} de {{ totalPasos }}</span>
+        <p *ngIf="errorMensaje && pasoActual < totalPasos" class="text-xs font-bold" style="color: #EF4444;">⚠ {{ errorMensaje }}</p>
+      </div>
+      <button *ngIf="pasoActual < totalPasos" type="button" (click)="siguientePaso()"
+        class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+        style="background: #0072BC;">Siguiente →</button>
+      <button *ngIf="pasoActual === totalPasos" type="submit" [disabled]="guardando"
+        class="px-8 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+        style="background: linear-gradient(135deg, #16A34A, #22C55E);">
+        {{ guardando ? 'Guardando...' : '✓ Guardar Parte Diario' }}
+      </button>
+    </div>
+
+  </form>
+</div>

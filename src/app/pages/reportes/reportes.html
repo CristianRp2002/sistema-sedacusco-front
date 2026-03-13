@@ -1,0 +1,141 @@
+<div class="space-y-6">
+
+  <!-- Encabezado -->
+  <app-page-header
+    seccion="Reportes"
+    titulo="Reportes"
+    subtitulo="Exporta resúmenes mensuales y fichas individuales"
+    botonTexto=""
+    botonIcono="">
+  </app-page-header>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-2xl px-5 py-4 flex items-center gap-4 border border-gray-100"
+    style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+    <div class="flex items-center gap-2">
+      <span class="material-icons text-gray-400" style="font-size: 18px;">calendar_month</span>
+      <select class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
+        style="border-color: #e2e8f0; color: #475569;"
+        [(ngModel)]="mesSeleccionado">
+        <option *ngFor="let m of meses; let i = index" [value]="i+1">{{ m }}</option>
+      </select>
+    </div>
+    <div class="flex items-center gap-2">
+      <select class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
+        style="border-color: #e2e8f0; color: #475569;"
+        [(ngModel)]="anioSeleccionado">
+        <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
+      </select>
+    </div>
+    <div class="flex items-center gap-2">
+      <select class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
+        style="border-color: #e2e8f0; color: #475569;"
+        [(ngModel)]="estacionSeleccionada">
+        <option value="">Todas las estaciones</option>
+        <option *ngFor="let e of estaciones" [value]="e.id">{{ e.nombre }}</option>
+      </select>
+    </div>
+    <button (click)="cargarReporte()"
+      class="flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl font-bold text-white transition-all hover:opacity-90"
+      style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
+      <span class="material-icons" style="font-size: 16px;">search</span>
+      Generar
+    </button>
+  </div>
+
+  <!-- Resumen tarjetas -->
+  <div class="grid grid-cols-4 gap-4" *ngIf="partes.length > 0">
+    <div class="bg-white rounded-2xl p-5 border border-gray-100"
+      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: #94a3b8;">Total Producción</p>
+      <p class="text-3xl font-black" style="color: #001F4E;">{{ totalProduccion | number }}</p>
+      <p class="text-xs mt-1" style="color: #94a3b8;">m³ en el mes</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 border border-gray-100"
+      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: #94a3b8;">Días Operativos</p>
+      <p class="text-3xl font-black" style="color: #001F4E;">{{ partes.length }}</p>
+      <p class="text-xs mt-1" style="color: #94a3b8;">días con registro</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 border border-gray-100"
+      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: #94a3b8;">Total Horas Bombeo</p>
+      <p class="text-3xl font-black" style="color: #001F4E;">{{ totalHoras | number:'1.0-1' }}</p>
+      <p class="text-xs mt-1" style="color: #94a3b8;">horas en el mes</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 border border-gray-100"
+      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: #94a3b8;">Promedio Diario</p>
+      <p class="text-3xl font-black" style="color: #001F4E;">{{ promedioDiario | number:'1.0-1' }}</p>
+      <p class="text-xs mt-1" style="color: #94a3b8;">m³ por día</p>
+    </div>
+  </div>
+
+  <!-- Botones exportar -->
+  <div class="flex gap-3" *ngIf="partes.length > 0">
+    <button (click)="exportarExcel()"
+      class="flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl font-bold text-white transition-all hover:opacity-90 hover:shadow-lg"
+      style="background: linear-gradient(135deg, #16a34a, #22c55e);">
+      <span class="material-icons" style="font-size: 18px;">table_view</span>
+      Exportar Excel
+    </button>
+  </div>
+
+  <!-- Tabla de partes -->
+  <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+    style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);" *ngIf="partes.length > 0">
+    <table class="w-full text-sm">
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 1px solid #f1f5f9;">
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Fecha</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Estación</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Tot. Inicial</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Tot. Final</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Producción</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Horas Bombeo</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">PDF</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let parte of partes"
+          class="transition-colors duration-150"
+          style="border-top: 1px solid #f8fafc;"
+          onmouseover="this.style.background='#f8fafc'"
+          onmouseout="this.style.background='white'">
+          <td class="px-6 py-4 font-semibold" style="color: #1e293b;">
+            {{ parte.fecha_folio | date:'dd/MM/yyyy' }}
+          </td>
+          <td class="px-6 py-4 font-medium" style="color: #475569;">{{ parte.estacion?.nombre }}</td>
+          <td class="px-6 py-4 font-medium" style="color: #475569;">{{ parte.totalizador_inicial | number }}</td>
+          <td class="px-6 py-4 font-medium" style="color: #475569;">{{ parte.totalizador_final | number }}</td>
+          <td class="px-6 py-4">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+              style="background: #f0fdf4; color: #16a34a;">
+              {{ parte.produccion_calculada | number }} m³
+            </span>
+          </td>
+          <td class="px-6 py-4 font-medium" style="color: #475569;">
+            {{ getHorasBombeo(parte) | number:'1.0-1' }}h
+          </td>
+          <td class="px-6 py-4">
+            <button (click)="exportarPDF(parte)"
+              class="p-2 rounded-lg transition-all hover:shadow-md"
+              style="color: #dc2626; background: #fef2f2;" title="Exportar PDF">
+              <span class="material-icons" style="font-size: 16px;">picture_as_pdf</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Sin datos -->
+  <div *ngIf="partes.length === 0 && buscado"
+    class="bg-white rounded-2xl border border-gray-100 px-6 py-12 text-center"
+    style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+    <span class="material-icons text-4xl" style="color: #cbd5e1;">find_in_page</span>
+    <p class="text-sm font-medium mt-2" style="color: #94a3b8;">No se encontraron partes para este período</p>
+  </div>
+  
+
+</div>

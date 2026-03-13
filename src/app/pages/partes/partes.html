@@ -1,1 +1,407 @@
-<p>partes works!</p>
+<div class="space-y-6">
+
+  <!-- Encabezado -->
+  <div class="flex items-center justify-between">
+    <app-page-header
+      seccion="Operaciones"
+      titulo="Partes Diarios"
+      subtitulo="Secuencias diarias de operación registradas">
+    </app-page-header>
+    <button (click)="irANuevoParte()"
+      class="px-4 py-2.5 rounded-xl text-sm font-bold text-white flex items-center gap-2"
+      style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
+      <span class="material-icons" style="font-size: 16px;">add</span>
+      Nuevo Parte
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-2xl px-5 py-4 flex items-center gap-4 border border-gray-100"
+    style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+    <div class="flex items-center gap-2 flex-1 px-3 py-2 rounded-xl" style="background: #f8fafc;">
+      <span class="material-icons text-gray-400" style="font-size: 18px;">search</span>
+      <input type="text" placeholder="Buscar por estación u operario..."
+        class="flex-1 bg-transparent text-sm outline-none" style="color: #1e293b;"
+        (input)="filtrarTexto($event)">
+    </div>
+    <div class="flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium"
+      style="border-color: #e2e8f0; color: #475569;">
+      <span class="material-icons" style="font-size: 16px;">calendar_today</span>
+      <input type="date" class="outline-none bg-transparent text-sm" style="color: #475569;"
+        (change)="filtrarFecha($event)">
+    </div>
+    <select class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
+      style="border-color: #e2e8f0; color: #475569;"
+      (change)="filtrarEstacion($event)">
+      <option value="">Todas las estaciones</option>
+      <option *ngFor="let e of estaciones" [value]="e.id">{{ e.nombre }}</option>
+    </select>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+    style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+    <table class="w-full text-sm">
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 1px solid #f1f5f9;">
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Fecha</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Estación</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Totalizador Inicial</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Totalizador Final</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Producción</th>
+          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let parte of partesFiltrados"
+          class="transition-colors duration-150 cursor-pointer"
+          style="border-top: 1px solid #f8fafc;"
+          onmouseover="this.style.background='#f8fafc'"
+          onmouseout="this.style.background='white'">
+          <td class="px-6 py-4 font-semibold" style="color: #1e293b;">
+            {{ parte.fecha_folio | date:'dd/MM/yyyy' }}
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                style="background: linear-gradient(135deg, #001F4E, #0072BC);">
+                <span class="material-icons text-white" style="font-size: 14px;">factory</span>
+              </div>
+              <span class="font-medium" style="color: #1e293b;">{{ parte.estacion?.nombre }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 font-medium" style="color: #475569;">
+            {{ parte.totalizador_inicial | number }}
+          </td>
+          <td class="px-6 py-4 font-medium" style="color: #475569;">
+            {{ parte.totalizador_final | number }}
+          </td>
+          <td class="px-6 py-4">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+              style="background: #f0fdf4; color: #16a34a;">
+              <span class="material-icons" style="font-size: 11px;">water_drop</span>
+              {{ parte.produccion_calculada | number }} m³
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-2">
+              <button (click)="verDetalle(parte)"
+                class="p-2 rounded-lg transition-all hover:shadow-md"
+                style="color: #0072BC; background: #eff6ff;" title="Ver detalle">
+                <span class="material-icons" style="font-size: 16px;">visibility</span>
+              </button>
+              <button (click)="eliminarParte(parte)"
+                class="p-2 rounded-lg transition-all hover:shadow-md"
+                style="color: #dc2626; background: #fef2f2;" title="Eliminar">
+                <span class="material-icons" style="font-size: 16px;">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="partesFiltrados.length === 0">
+          <td colspan="6" class="px-6 py-12 text-center">
+            <span class="material-icons text-4xl" style="color: #cbd5e1;">assignment_late</span>
+            <p class="text-sm font-medium mt-2" style="color: #94a3b8;">No se encontraron partes diarios</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Detalle -->
+  <div *ngIf="modalDetalleAbierto" class="fixed inset-0 z-50 flex items-center justify-center"
+    style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 overflow-hidden"
+      style="max-height: 90vh; overflow-y: auto;">
+
+      <!-- Header modal -->
+      <div class="px-6 py-5 flex items-center justify-between sticky top-0 bg-white z-10"
+        style="border-bottom: 1px solid #f1f5f9;">
+        <div>
+          <h4 class="font-black text-base" style="color: #001F4E;">Secuencia Diaria de Operación</h4>
+          <p class="text-xs mt-0.5" style="color: #94a3b8;">
+            {{ parteSeleccionado?.estacion?.nombre?.toUpperCase() }} ·
+            {{ parteSeleccionado?.fecha_folio | date:'dd/MM/yyyy' }}
+          </p>
+        </div>
+        <button (click)="cerrarDetalle()" class="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <span class="material-icons" style="color: #94a3b8;">close</span>
+        </button>
+      </div>
+
+      <!-- Contenido -->
+      <div class="px-6 py-5 space-y-6" *ngIf="parteSeleccionado">
+
+        <!-- I. Inspección -->
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #0072BC;">
+            I. Inspección del Sistema
+          </p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Interruptor 10KV</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.interruptor_llegada_10kv_estado || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Temperatura Transf.</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.transformador_temperatura ? parteSeleccionado.transformador_temperatura + '°C' : '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Tensión Llegada (R/S/T)</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.tension_llegada?.fase_R || '—' }} /
+                {{ parteSeleccionado.tension_llegada?.fase_S || '—' }} /
+                {{ parteSeleccionado.tension_llegada?.fase_T || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Tensión Tablero (R/S/T)</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.tension_tablero?.fase_R || '—' }} /
+                {{ parteSeleccionado.tension_tablero?.fase_S || '—' }} /
+                {{ parteSeleccionado.tension_tablero?.fase_T || '—' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- II. Habilitación -->
+        <div *ngIf="parteSeleccionado.verificacionesTablero?.length > 0">
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #0072BC;">
+            II. Habilitación de Equipos
+          </p>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Tablero Telemetría</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.condicion_habilitacion?.estado_telemetria || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Presión Ingreso</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.condicion_habilitacion?.presion_ingreso ?
+                   parteSeleccionado.condicion_habilitacion.presion_ingreso + ' LTS' : '—' }}
+              </p>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr style="background: #f8fafc;">
+                  <th class="px-3 py-2 text-left font-bold" style="color: #94a3b8;">TABLERO</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">INTERRUPTOR</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">SELECTOR</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">PARADA EMERG.</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">VARIADOR</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">ALARMA</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let v of parteSeleccionado.verificacionesTablero">
+                  <tr *ngIf="v.momento === 'HABILITACION'" style="border-top: 1px solid #f1f5f9;">
+                    <td class="px-3 py-2 font-medium" style="color: #1e293b;">{{ v.tablero?.nombre || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.interruptor_estado || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.selector_estado || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.parada_emergencia_estado || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.variador_estado || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.alarma_estado || '—' }}</td>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- III. Lectura Inicial -->
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #0072BC;">
+            III. Lectura Inicial
+          </p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Hora Registro</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.lectura_inicial?.hora_registro || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Nivel Cisterna EB</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.lectura_inicial?.nivel_cisterna || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Presión de Línea</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.lectura_inicial?.presion_linea || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Totalizador</p>
+              <p class="font-bold text-lg" style="color: #001F4E;">
+                {{ parteSeleccionado.totalizador_inicial | number }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- IV. Bombeos -->
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #0072BC;">
+            IV. Encendido y Apagado de Bombas
+          </p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr style="background: #f8fafc;">
+                  <th class="px-3 py-2 text-left font-bold uppercase" style="color: #94a3b8;">Bomba</th>
+                  <th class="px-3 py-2 text-center font-bold uppercase" style="color: #94a3b8;">Encendido</th>
+                  <th class="px-3 py-2 text-center font-bold uppercase" style="color: #94a3b8;">Apagado</th>
+                  <th class="px-3 py-2 text-right font-bold uppercase" style="color: #94a3b8;">Horóm. I</th>
+                  <th class="px-3 py-2 text-right font-bold uppercase" style="color: #94a3b8;">Horóm. F</th>
+                  <th class="px-3 py-2 text-center font-bold uppercase" style="color: #94a3b8;">Horas</th>
+                  <th class="px-3 py-2 text-left font-bold uppercase" style="color: #94a3b8;">Obs.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let b of parteSeleccionado.detallesBombeo"
+                  style="border-top: 1px solid #f1f5f9;">
+                  <td class="px-3 py-2 font-medium" style="color: #1e293b;">{{ b.bomba?.nombre }}</td>
+                  <td class="px-3 py-2 text-center" style="color: #475569;">{{ b.encendido | date:'HH:mm' }}</td>
+                  <td class="px-3 py-2 text-center" style="color: #475569;">{{ b.apagado | date:'HH:mm' }}</td>
+                  <td class="px-3 py-2 text-right" style="color: #475569;">{{ b.horometro_inicial }}</td>
+                  <td class="px-3 py-2 text-right" style="color: #475569;">{{ b.horometro_final }}</td>
+                  <td class="px-3 py-2 text-center">
+                    <span class="font-bold" style="color: #0072BC;">
+                      {{ b.horas_bombeo ? b.horas_bombeo + 'h' : '—' }}
+                    </span>
+                  </td>
+                  <td class="px-3 py-2" style="color: #475569;">{{ b.observacion || '—' }}</td>
+                </tr>
+                <tr *ngIf="!parteSeleccionado.detallesBombeo?.length">
+                  <td colspan="7" class="px-3 py-4 text-center" style="color: #94a3b8;">
+                    Sin registros de bombeo
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- V. Lectura Final -->
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #0072BC;">
+            V. Lectura Final
+          </p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Hora Registro</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.lectura_final?.hora_registro || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Nivel Cisterna EB</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.lectura_final?.nivel_cisterna || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Presión de Línea</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.lectura_final?.presion_linea || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Totalizador Final</p>
+              <p class="font-bold text-lg" style="color: #001F4E;">
+                {{ parteSeleccionado.totalizador_final | number }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-3 p-4 rounded-xl text-center" style="background: #f0fdf4;">
+            <p class="text-xs font-bold mb-1" style="color: #16a34a;">PRODUCCIÓN CALCULADA</p>
+            <p class="text-2xl font-black" style="color: #16a34a;">
+              {{ parteSeleccionado.produccion_calculada | number }} m³
+            </p>
+          </div>
+        </div>
+
+        <!-- VI. Desactivación -->
+        <div *ngIf="parteSeleccionado.verificacionesTablero?.length > 0">
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #0072BC;">
+            VI. Desactivación de Equipos
+          </p>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Tablero Telemetría</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.condicion_desactivacion?.estado_telemetria || '—' }}
+              </p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <p class="text-xs" style="color: #94a3b8;">Presión Ingreso</p>
+              <p class="font-bold" style="color: #001F4E;">
+                {{ parteSeleccionado.condicion_desactivacion?.presion_ingreso ?
+                   parteSeleccionado.condicion_desactivacion.presion_ingreso + ' LTS' : '—' }}
+              </p>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr style="background: #f8fafc;">
+                  <th class="px-3 py-2 text-left font-bold" style="color: #94a3b8;">TABLERO</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">INTERRUPTOR</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">SELECTOR</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">PARADA EMERG.</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">VARIADOR</th>
+                  <th class="px-3 py-2 text-center font-bold" style="color: #94a3b8;">ALARMA</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let v of parteSeleccionado.verificacionesTablero">
+                  <tr *ngIf="v.momento === 'DESACTIVACION'" style="border-top: 1px solid #f1f5f9;">
+                    <td class="px-3 py-2 font-medium" style="color: #1e293b;">{{ v.tablero?.nombre || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.interruptor_estado || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.selector_estado || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.parada_emergencia_estado || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.variador_estado || '—' }}</td>
+                    <td class="px-3 py-2 text-center" style="color: #475569;">{{ v.alarma_estado || '—' }}</td>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Operadores -->
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #0072BC;">Operadores</p>
+          <div class="flex flex-wrap gap-3">
+            <div *ngFor="let op of parteSeleccionado.operadores"
+              class="flex items-center gap-2 px-3 py-2 rounded-xl"
+              style="background: #f8fafc;">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
+                {{ op.nombre_operador?.charAt(0)?.toUpperCase() }}
+              </div>
+              <span class="text-sm font-medium" style="color: #1e293b;">{{ op.nombre_operador }}</span>
+              <span class="text-xs px-2 py-0.5 rounded-full font-bold"
+                style="background: #e0f2fe; color: #0284c7;">
+                {{ op.turno === '1' ? 'PRIMER' : op.turno === '2' ? 'SEGUNDO' : 'TERCER' }} TURNO
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

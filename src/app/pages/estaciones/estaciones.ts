@@ -35,12 +35,16 @@ export class Estaciones implements OnInit {
   });
 
   bombaForm = this.fb.group({
-    nombre: ['', [Validators.required, Validators.minLength(3)]]
+    nombre: ['', [Validators.required, Validators.minLength(3)]],
+    numero_serie: [''],
+    activa: [true]
   });
 
   tableroForm = this.fb.group({
     nombre: ['', [Validators.required, Validators.minLength(3)]],
-    tipo: ['']
+    numero_serie: [''],
+    tipo: [''],
+    activo: [true]
   });
 
   ngOnInit() {
@@ -86,7 +90,9 @@ export class Estaciones implements OnInit {
   editarBomba(bomba: any, estacion: any) {
     this.bombaEditando = bomba;
     this.estacionSeleccionada = estacion;
-    this.bombaForm.patchValue({ nombre: bomba.nombre });
+    this.bombaForm.patchValue({ nombre: bomba.nombre,
+        numero_serie: bomba.numero_serie, activa: bomba.activa
+     });
     this.modalBombaAbierto = true;
   }
 
@@ -100,7 +106,12 @@ export class Estaciones implements OnInit {
   editarTablero(tablero: any, estacion: any) {
     this.tableroEditando = tablero;
     this.estacionSeleccionada = estacion;
-    this.tableroForm.patchValue({ nombre: tablero.nombre, tipo: tablero.tipo });
+    this.tableroForm.patchValue({
+      nombre: tablero.nombre,
+      numero_serie: tablero.numero_serie,
+      tipo: tablero.tipo,
+      activo: tablero.activo
+    });
     this.modalTableroAbierto = true;
   }
 
@@ -136,37 +147,43 @@ export class Estaciones implements OnInit {
 
   guardarBomba() {
     if (this.bombaForm.invalid) return;
-    const datos = this.bombaForm.value as { nombre: string };
+    const datos: any = {
+      ...this.bombaForm.value,
+      activa: this.bombaForm.value.activa === true ? true : false
+    };
 
     if (this.bombaEditando) {
       this.estacionesService.actualizarBomba(this.bombaEditando.id, datos).subscribe({
         next: () => { this.cerrarModales(); this.cargarEstaciones(); },
-        error: (err) => console.error('Error actualizando bomba', err)
+        error: (err: any) => console.error('Error actualizando bomba', err)
       });
     } else {
       this.estacionesService.crearBomba(this.estacionSeleccionada.id, datos).subscribe({
         next: () => { this.cerrarModales(); this.cargarEstaciones(); },
-        error: (err) => console.error('Error creando bomba', err)
+        error: (err: any) => console.error('Error creando bomba', err)
       });
     }
   }
 
   guardarTablero() {
-    if (this.tableroForm.invalid) return;
-    const datos = this.tableroForm.value as { nombre: string, tipo: string };
+  if (this.tableroForm.invalid) return;
+  const datos: any = {
+    ...this.tableroForm.value,
+    activo: this.tableroForm.value.activo === true ? true : false
+  };
 
-    if (this.tableroEditando) {
-      this.estacionesService.actualizarTablero(this.tableroEditando.id, datos).subscribe({
-        next: () => { this.cerrarModales(); this.cargarEstaciones(); },
-        error: (err) => console.error('Error actualizando tablero', err)
-      });
-    } else {
-      this.estacionesService.crearTablero(this.estacionSeleccionada.id, datos).subscribe({
-        next: () => { this.cerrarModales(); this.cargarEstaciones(); },
-        error: (err) => console.error('Error creando tablero', err)
-      });
-    }
+  if (this.tableroEditando) {
+    this.estacionesService.actualizarTablero(this.tableroEditando.id, datos).subscribe({
+      next: () => { this.cerrarModales(); this.cargarEstaciones(); },
+      error: (err: any) => console.error('Error actualizando tablero', err)
+    });
+  } else {
+    this.estacionesService.crearTablero(this.estacionSeleccionada.id, datos).subscribe({
+      next: () => { this.cerrarModales(); this.cargarEstaciones(); },
+      error: (err: any) => console.error('Error creando tablero', err)
+    });
   }
+}
 
   eliminarEstacion(estacion: any) {
     if (confirm(`¿Eliminar la estación ${estacion.nombre}?`)) {
