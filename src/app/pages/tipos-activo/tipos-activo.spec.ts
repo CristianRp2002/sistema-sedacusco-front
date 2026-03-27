@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FichaPdf } from './ficha-pdf';
+import { TiposActivo } from './tipos-activo';
 
-describe('FichaPdf', () => {
-  let component: FichaPdf;
-  let fixture: ComponentFixture<FichaPdf>;
+describe('TiposActivo', () => {
+  let component: TiposActivo;
+  let fixture: ComponentFixture<TiposActivo>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FichaPdf]
+      imports: [TiposActivo]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(FichaPdf);
+    fixture = TestBed.createComponent(TiposActivo);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

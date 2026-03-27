@@ -4,7 +4,7 @@
   <app-page-header
     seccion="Gestión"
     titulo="Estaciones"
-    subtitulo="Administra las estaciones, bombas y tableros"
+    subtitulo="Administra las estaciones, bombas, tableros y activos"
     botonTexto="Nueva Estación"
     botonIcono="add_location"
     (botonClick)="abrirModalEstacion()">
@@ -32,7 +32,9 @@
           <div>
             <h4 class="font-black" style="color: #001F4E;">{{ estacion.nombre }}</h4>
             <p class="text-xs" style="color: #94a3b8;">
-              {{ estacion.bombas?.length || 0 }} bombas · {{ estacion.tableros?.length || 0 }} tableros
+              {{ estacion.bombas?.length || 0 }} bombas ·
+              {{ estacion.tableros?.length || 0 }} tableros ·
+              {{ estacion.activos?.length || 0 }} activos
             </p>
           </div>
         </div>
@@ -49,6 +51,12 @@
             <span class="material-icons" style="font-size: 15px;">add</span>
             Tablero
           </button>
+          <button (click)="abrirModalActivo(estacion)"
+            class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-bold transition-all hover:shadow-md"
+            style="background: #fdf4ff; color: #9333ea;">
+            <span class="material-icons" style="font-size: 15px;">add</span>
+            Activo
+          </button>
           <button (click)="editarEstacion(estacion)"
             class="p-2 rounded-xl transition-all hover:shadow-md"
             style="background: #f8fafc; color: #475569;">
@@ -62,8 +70,8 @@
         </div>
       </div>
 
-      <!-- Bombas y Tableros -->
-      <div class="grid grid-cols-2 divide-x divide-gray-50">
+      <!-- Bombas, Tableros y Activos -->
+      <div class="grid grid-cols-3 divide-x divide-gray-50">
 
         <!-- Bombas -->
         <div class="p-4">
@@ -119,6 +127,43 @@
           </div>
         </div>
 
+        <!-- Activos -->
+        <div class="p-4">
+          <p class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #94a3b8;">Activos</p>
+          <div *ngIf="!estacion.activos || estacion.activos?.length === 0"
+            class="text-xs text-gray-400">Sin activos registrados</div>
+          <div *ngFor="let activo of estacion.activos" class="flex items-center justify-between py-2"
+            style="border-bottom: 1px solid #f8fafc;">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full"
+                [ngStyle]="activo.activo ? {background: '#22c55e'} : {background: '#dc2626'}"></span>
+              <div>
+                <span class="text-sm font-medium" style="color: #1e293b;">{{ activo.nombre }}</span>
+                <span class="text-xs ml-1.5 px-1.5 py-0.5 rounded-full"
+                  style="background: #fdf4ff; color: #9333ea;">
+                  {{ activo.tipoActivo?.nombre }}
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button (click)="editarActivo(activo, estacion)"
+                class="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                style="color: #0072BC;">
+                <span class="material-icons" style="font-size: 14px;">edit</span>
+              </button>
+              <button (click)="toggleActivo(activo)"
+                class="p-1.5 rounded-lg transition-colors"
+                [style.color]="activo.activo ? '#dc2626' : '#16a34a'"
+                [style.background]="activo.activo ? '#fef2f2' : '#f0fdf4'"
+                [title]="activo.activo ? 'Desactivar' : 'Activar'">
+                <span class="material-icons" style="font-size: 14px;">
+                  {{ activo.activo ? 'toggle_on' : 'toggle_off' }}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -132,7 +177,7 @@
   </div>
 
   <!-- Modal Estación -->
-<app-modal
+  <app-modal
     [abierto]="modalEstacionAbierto"
     [titulo]="estacionEditando ? 'Editar Estación' : 'Nueva Estación'"
     subtitulo="Ingresa el nombre de la estación"
@@ -156,40 +201,34 @@
     </form>
   </app-modal>
 
-<!-- Modal Bomba -->
-<app-modal
+  <!-- Modal Bomba -->
+  <app-modal
     [abierto]="modalBombaAbierto"
     [titulo]="bombaEditando ? 'Editar Bomba' : 'Nueva Bomba'"
     subtitulo="Ingresa los datos de la bomba"
     (cerrar)="cerrarModales()">
     <form [formGroup]="bombaForm" (ngSubmit)="guardarBomba()" class="space-y-4">
-
       <app-form-input
         label="Nombre"
         placeholder="Ej: Electro Bomba N° 1"
         formControlName="nombre">
       </app-form-input>
-
       <app-form-input
         label="Número de Serie"
         placeholder="Ej: SB-2024-001"
         formControlName="numero_serie"
         [opcional]="true">
       </app-form-input>
-
-      
-
       <div>
         <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Estado</label>
         <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border" style="border-color: #e2e8f0;">
           <input type="checkbox" id="bombaActiva" formControlName="activa"
             class="w-4 h-4 rounded cursor-pointer" style="accent-color: #0072BC;">
           <label for="bombaActiva" class="text-sm font-medium cursor-pointer" style="color: #1e293b;">
-            Estado de Bomba
+            Bomba activa
           </label>
         </div>
       </div>
-
       <div class="flex gap-3 pt-2">
         <button type="button" (click)="cerrarModales()"
           class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
@@ -200,18 +239,16 @@
           {{ bombaEditando ? 'Guardar cambios' : 'Agregar Bomba' }}
         </button>
       </div>
-
     </form>
   </app-modal>
 
   <!-- Modal Tablero -->
-<app-modal
+  <app-modal
     [abierto]="modalTableroAbierto"
     [titulo]="tableroEditando ? 'Editar Tablero' : 'Nuevo Tablero'"
     subtitulo="Ingresa los datos del tablero"
     (cerrar)="cerrarModales()">
     <form [formGroup]="tableroForm" (ngSubmit)="guardarTablero()" class="space-y-4">
-
       <app-form-input
         label="Nombre"
         placeholder="Ej: Tablero General"
@@ -223,7 +260,6 @@
         formControlName="numero_serie"
         [opcional]="true">
       </app-form-input>
-
       <div>
         <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Tipo</label>
         <select formControlName="tipo"
@@ -238,7 +274,6 @@
           <option value="Bomba">Bomba</option>
         </select>
       </div>
-
       <div>
         <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Estado</label>
         <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border" style="border-color: #e2e8f0;">
@@ -249,7 +284,6 @@
           </label>
         </div>
       </div>
-
       <div class="flex gap-3 pt-2">
         <button type="button" (click)="cerrarModales()"
           class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
@@ -260,7 +294,100 @@
           {{ tableroEditando ? 'Guardar cambios' : 'Agregar Tablero' }}
         </button>
       </div>
+    </form>
+  </app-modal>
+
+  <!-- Modal Activo -->
+  <app-modal
+    [abierto]="modalActivoAbierto"
+    [titulo]="activoEditando ? 'Editar Activo' : 'Nuevo Activo'"
+    subtitulo="Ingresa los datos del equipo"
+    (cerrar)="cerrarModales()">
+    <form [formGroup]="activoForm" (ngSubmit)="guardarActivo()" class="space-y-4">
+
+      <app-form-input
+        label="Nombre"
+        placeholder="Ej: Electrobomba Pozo 1"
+        formControlName="nombre">
+      </app-form-input>
+
+      <div>
+        <label class="block text-xs font-bold mb-1.5" style="color: #475569;">
+          Tipo de Equipo <span style="color: #dc2626;">*</span>
+        </label>
+        <select formControlName="tipo_activo_id"
+          class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all font-medium"
+          style="border-color: #e2e8f0; color: #1e293b;"
+          onfocus="this.style.borderColor='#9333ea'"
+          onblur="this.style.borderColor='#e2e8f0'">
+          <option value="">Selecciona un tipo</option>
+          <option *ngFor="let tipo of tiposActivo" [value]="tipo.id">
+            {{ tipo.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <app-form-input
+        label="Código"
+        placeholder="Ej: PIN-BOM-01"
+        formControlName="codigo"
+        [opcional]="true">
+      </app-form-input>
+
+      <app-form-input
+        label="Número de Serie"
+        placeholder="Ej: SB-2024-001"
+        formControlName="numero_serie"
+        [opcional]="true">
+      </app-form-input>
+
+      <div class="grid grid-cols-2 gap-3">
+        <app-form-input
+          label="Marca"
+          placeholder="Ej: Grundfos"
+          formControlName="marca"
+          [opcional]="true">
+        </app-form-input>
+        <app-form-input
+          label="Modelo"
+          placeholder="Ej: SP-17-4"
+          formControlName="modelo"
+          [opcional]="true">
+        </app-form-input>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+          <button type="button" (click)="cerrarModales()"
+            class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
+            style="border-color: #e2e8f0; color: #64748b;">Cancelar</button>
+          <button type="submit" [disabled]="activoForm.invalid"
+            class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+            style="background: linear-gradient(135deg, #9333ea, #a855f7);">
+            {{ activoEditando ? 'Guardar cambios' : 'Agregar Activo' }}
+          </button>
+        </div>
+        <div *ngIf="activoForm.get('tipo_activo_id')?.value"
+    class="p-3 rounded-xl"
+    style="background: #f8fafc; border: 1px solid #e2e8f0;">
+    <p class="text-xs font-bold mb-2" style="color: #475569;">
+      Campos que se registrarán:
+    </p>
+    <div *ngIf="getCamposDelTipo(activoForm.get('tipo_activo_id')?.value).length === 0"
+      class="text-xs" style="color: #94a3b8;">
+      Sin campos definidos para este tipo
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <span *ngFor="let campo of getCamposDelTipo(activoForm.get('tipo_activo_id')?.value)"
+        class="text-xs px-2 py-1 rounded-lg flex items-center gap-1"
+        style="background: #eff6ff; color: #0072BC;">
+        <span *ngIf="campo.requerido" style="color: #dc2626;">*</span>
+        {{ campo.etiqueta }}
+        <span *ngIf="campo.unidad" style="color: #94a3b8;">({{ campo.unidad }})</span>
+      </span>
+    </div>
+  </div>
 
     </form>
   </app-modal>
+
 </div>

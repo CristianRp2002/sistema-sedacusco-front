@@ -74,8 +74,16 @@ export class Reportes implements OnInit {
   }
 
   getHorasBombeo(parte: any): number {
-    return parte.detallesBombeo?.reduce((sum: number, b: any) => sum + Number(b.horas_bombeo || 0), 0) || 0;
-  }
+  if (!parte.detallesBombeo || parte.detallesBombeo.length === 0) return 0;
+
+  return parte.detallesBombeo.reduce((sum: number, b: any) => {
+    if (!b.encendido || !b.apagado) return sum;
+    const encendido = new Date(b.encendido).getTime();
+    const apagado   = new Date(b.apagado).getTime();
+    const horas     = (apagado - encendido) / (1000 * 60 * 60);
+    return sum + horas;
+  }, 0);
+}
 
   exportarExcel() {
     const estacion = this.estaciones.find(e => e.id === this.estacionSeleccionada)?.nombre || 'Todas';

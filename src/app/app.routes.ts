@@ -7,6 +7,8 @@ import { Estaciones } from './pages/estaciones/estaciones';
 import { Partes } from './pages/partes/partes';
 import { Reportes } from './pages/reportes/reportes';
 import { NuevoParte } from './pages/nuevo-parte/nuevo-parte';
+import { TiposActivo } from './pages/tipos-activo/tipos-activo';
+import { rolesGuard } from './guards/roles.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -14,12 +16,17 @@ export const routes: Routes = [
     path: '',
     component: MainLayoutComponent,
     children: [
-      { path: 'inicio', component: Inicio },
-      { path: 'usuarios', component: Usuarios},
-      { path: 'estaciones', component: Estaciones },
-      { path: 'partes', component: Partes },
-      { path: 'reportes', component: Reportes },
+      // Todos los roles
+      { path: 'inicio',      component: Inicio },
+      { path: 'partes',      component: Partes },
       { path: 'nuevo-parte', component: NuevoParte },
+      { path: 'reportes',    component: Reportes },
+
+      // Solo ADMIN y JEFE
+      { path: 'usuarios',     component: Usuarios,    canActivate: [rolesGuard(['ADMIN', 'JEFE'])] },
+      { path: 'estaciones',   component: Estaciones,  canActivate: [rolesGuard(['ADMIN', 'JEFE'])] },
+      { path: 'tipos-activo', component: TiposActivo, canActivate: [rolesGuard(['ADMIN', 'JEFE'])] },
+
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   }

@@ -21,9 +21,9 @@
 
     <!-- Menú -->
     <nav class="flex-1 px-3 py-5 space-y-0.5 relative z-10">
-      
+
       <p class="text-xs font-bold uppercase px-3 pb-2 pt-1" style="color: rgba(255,255,255,0.2); letter-spacing: 0.12em;">Principal</p>
-      
+
       <a routerLink="/inicio" routerLinkActive="active-link"
         class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
         style="color: rgba(255,255,255,0.55);">
@@ -33,19 +33,29 @@
 
       <p class="text-xs font-bold uppercase px-3 pb-2 pt-4" style="color: rgba(255,255,255,0.2); letter-spacing: 0.12em;">Gestión</p>
 
-      <a routerLink="/usuarios" routerLinkActive="active-link"
+      <!-- Solo ADMIN y JEFE -->
+      <a *ngIf="esAdmin || esJefe" routerLink="/usuarios" routerLinkActive="active-link"
         class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
         style="color: rgba(255,255,255,0.55);">
         <span class="material-icons" style="font-size: 18px;">group</span>
         <span>Usuarios</span>
       </a>
 
-      <a routerLink="/estaciones" routerLinkActive="active-link"
+      <a *ngIf="esAdmin || esJefe" routerLink="/estaciones" routerLinkActive="active-link"
         class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
         style="color: rgba(255,255,255,0.55);">
         <span class="material-icons" style="font-size: 18px;">factory</span>
         <span>Estaciones</span>
       </a>
+
+      <a *ngIf="esAdmin || esJefe" routerLink="/tipos-activo" routerLinkActive="active-link"
+        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+        style="color: rgba(255,255,255,0.55);">
+        <span class="material-icons" style="font-size: 18px;">tune</span>
+        <span>Tipos de Activo</span>
+      </a>
+
+      <!-- Todos los roles -->
       <a routerLink="/partes" routerLinkActive="active-link"
         class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
         style="color: rgba(255,255,255,0.55);">
@@ -65,15 +75,17 @@
     <!-- Usuario y Cerrar sesión -->
     <div class="px-3 py-4 relative z-10" style="border-top: 1px solid rgba(255,255,255,0.06);">
       <div class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1" style="background: rgba(255,255,255,0.05);">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0" style="background: linear-gradient(135deg, #29ABE2, #0072BC); box-shadow: 0 3px 8px rgba(41,171,226,0.3);">
-          A
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
+          style="background: linear-gradient(135deg, #29ABE2, #0072BC); box-shadow: 0 3px 8px rgba(41,171,226,0.3);">
+          {{ usuario?.nombre_completo?.charAt(0)?.toUpperCase() || 'U' }}
         </div>
         <div class="overflow-hidden">
-          <p class="text-sm font-bold text-white truncate">Admin</p>
-          <p class="text-xs truncate" style="color: rgba(255,255,255,0.35);">Administrador</p>
+          <p class="text-sm font-bold text-white truncate">{{ usuario?.nombre_completo || 'Usuario' }}</p>
+          <p class="text-xs truncate" style="color: rgba(255,255,255,0.35);">{{ rolUsuario }}</p>
         </div>
       </div>
-      <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+      <button (click)="cerrarSesion()"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
         style="color: rgba(255,100,100,0.7);"
         onmouseover="this.style.background='rgba(239,68,68,0.1)'; this.style.color='rgba(255,120,120,1)'"
         onmouseout="this.style.background='transparent'; this.style.color='rgba(255,100,100,0.7)'">

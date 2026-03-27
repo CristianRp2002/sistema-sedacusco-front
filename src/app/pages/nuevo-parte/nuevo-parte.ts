@@ -6,7 +6,6 @@ import { EstacionesService } from '../../services/estaciones.service';
 import { OperacionesService } from '../../services/operaciones.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 
-// Validador: solo letras y espacios, sin números
 function soloTextoValidator(control: AbstractControl): ValidationErrors | null {
   const valor = control.value || '';
   const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
@@ -16,8 +15,6 @@ function soloTextoValidator(control: AbstractControl): ValidationErrors | null {
   return null;
 }
 
-// Convierte string vacío o undefined a null
-// Evita el error de PostgreSQL: "sintaxis inválida para tipo time: «»"
 function n(value: any): any {
   if (value === '' || value === undefined || value === null) return null;
   return value;
@@ -42,7 +39,11 @@ export class NuevoParte implements OnInit {
   guardando = false;
   errorMensaje = '';
   pasoActual = 1;
-  totalPasos = 6;
+  totalPasos = 7; 
+
+  // ── NUEVOS ────────────────────────────────────────────────
+  activosEstacion: any[] = [];
+  valoresActivos: { activo_id: string; campo_id: string; valor: string }[] = [];
 
   form: FormGroup = this.fb.group({
     fecha_folio: [new Date().toISOString().split('T')[0], Validators.required],
@@ -83,7 +84,7 @@ export class NuevoParte implements OnInit {
 
   ngOnInit() {
     this.estacionesService.getEstaciones().subscribe({
-      next: (data) => { this.estaciones = data; this.cdr.detectChanges(); },
+      next: (data) => { console.log('📦 DATOS DEL BACKEND:', data); this.estaciones = data; this.cdr.detectChanges(); },
       error: (err) => console.error(err)
     });
 
@@ -94,7 +95,8 @@ export class NuevoParte implements OnInit {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
-      this.operadoresArray.at(0).patchValue({ nombre_operador: user.nombre });
+      this.operadoresArray.at(0).patchValue({ nombre_operador: user.nombre_completo });
+      this.operadoresArray.at(0).get('nombre_operador')?.disable();
     }
   }
 
@@ -111,8 +113,19 @@ export class NuevoParte implements OnInit {
   onEstacionChange() {
     const id = this.form.get('estacion_id')?.value;
     this.estacionSeleccionada = this.estaciones.find(e => e.id === id) || null;
+    
     if (!this.estacionSeleccionada) return;
-
+    // Si la estación trae el último totalizador de ayer, lo inyectamos en el formulario
+    if (this.estacionSeleccionada.ultimo_totalizador !== undefined && this.estacionSeleccionada.ultimo_totalizador !== null) {
+      this.form.patchValue({
+        totalizador_inicial: this.estacionSeleccionada.ultimo_totalizador
+      });
+    } else {
+      // Si por alguna razón no hay 
+      this.form.patchValue({
+        totalizador_inicial: null
+      });
+    }
     this.bombasArray.clear();
     this.tablerosArray.clear();
 
@@ -121,7 +134,7 @@ export class NuevoParte implements OnInit {
       this.bombasArray.push(this.fb.group({
         bomba_id:    [bomba.id],
         bomba_nombre:[bomba.nombre],
-        registros: this.fb.array([this.crearRegistroBombeo()])
+        registros: this.fb.array([this.crearRegistroBombeo(bomba.ultimo_horometro)])
       }));
     });
 
@@ -149,6 +162,23 @@ export class NuevoParte implements OnInit {
       }));
     });
 
+    this.activosEstacion = this.estacionSeleccionada.activos
+      ?.filter((a: any) => a.activo)
+      ?.sort((a: any, b: any) => a.orden - b.orden) || [];
+
+    this.valoresActivos = [];
+    this.activosEstacion.forEach((activo: any) => {
+      const campos = activo.tipoActivo?.campos
+        ?.sort((a: any, b: any) => a.orden - b.orden) || [];
+      campos.forEach((campo: any) => {
+        this.valoresActivos.push({
+          activo_id: activo.id,
+          campo_id:  campo.id,
+          valor:     '',
+        });
+      });
+    });
+
     this.cdr.detectChanges();
   }
 
@@ -170,12 +200,12 @@ export class NuevoParte implements OnInit {
     return this.bombasArray.at(i).get('registros') as FormArray;
   }
 
-  crearRegistroBombeo(): FormGroup {
+  crearRegistroBombeo(valorInicial: any = null): FormGroup {
     return this.fb.group({
       encendido:         ['', Validators.required],
       apagado:           ['', Validators.required],
-      horometro_inicial: [null, Validators.required],
-      horometro_final:   [null, Validators.required],
+      horometro_inicial: [valorInicial, Validators.required],
+      horometro_final:   [null],
       observacion:       ['']
     });
   }
@@ -219,6 +249,40 @@ export class NuevoParte implements OnInit {
     return '';
   }
 
+  // ── NUEVOS MÉTODOS PARA ACTIVOS ───────────────────────────
+
+  getValor(activoId: string, campoId: string): string {
+    const v = this.valoresActivos.find(
+      x => x.activo_id === activoId && x.campo_id === campoId
+    );
+    return v?.valor || '';
+  }
+
+  setValor(activoId: string, campoId: string, evento: Event) {
+    const valor = (evento.target as HTMLInputElement).value;
+    const v = this.valoresActivos.find(
+      x => x.activo_id === activoId && x.campo_id === campoId
+    );
+    if (v) v.valor = valor;
+  }
+
+  tieneActivos(): boolean {
+    return this.activosEstacion.length > 0;
+  }
+
+  getIconoPorTipo(tipo: string): string {
+    const iconos: any = {
+      numero:   'pin',
+      hora:     'schedule',
+      texto:    'notes',
+      booleano: 'toggle_on',
+      fecha:    'calendar_today',
+    };
+    return iconos[tipo] || 'input';
+  }
+
+  // ── NAVEGACIÓN ────────────────────────────────────────────
+
   siguientePaso() {
     this.errorMensaje = '';
 
@@ -261,7 +325,7 @@ export class NuevoParte implements OnInit {
       let bombaInvalida = false;
       this.bombasArray.controls.forEach((bomba, i) => {
         this.getRegistrosBomba(i).controls.forEach(registro => {
-          ['encendido', 'apagado', 'horometro_inicial', 'horometro_final'].forEach(campo => {
+          ['encendido', 'apagado', 'horometro_inicial'].forEach(campo => {
             registro.get(campo)?.markAsTouched();
             if (registro.get(campo)?.invalid) bombaInvalida = true;
           });
@@ -269,8 +333,20 @@ export class NuevoParte implements OnInit {
       });
       if (bombaInvalida) { this.errorMensaje = 'Completa todos los datos de encendido y apagado'; this.cdr.detectChanges(); return; }
     }
-
+    
     if (this.pasoActual === 5) {
+      const faltantes = this.valoresActivos.filter(v => {
+        const activo = this.activosEstacion.find(a => a.id === v.activo_id);
+        const campo = activo?.tipoActivo?.campos?.find((c: any) => c.id === v.campo_id);
+        return campo?.requerido && (!v.valor || v.valor.trim() === '');
+      });
+      if (faltantes.length > 0) {
+        this.errorMensaje = `Hay ${faltantes.length} campo(s) obligatorio(s) sin completar`;
+        this.cdr.detectChanges(); return;
+      }
+    }
+
+    if (this.pasoActual === 6) {
       this.form.get('totalizador_final')?.markAsTouched();
       if (this.form.get('totalizador_final')?.invalid) {
         this.errorMensaje = 'El totalizador final es obligatorio';
@@ -300,7 +376,7 @@ export class NuevoParte implements OnInit {
     this.errorMensaje = '';
     const v = this.form.value;
 
-    const payload = {
+    const payload: any = {
       fecha_folio:  v.fecha_folio,
       estacion_id:  v.estacion_id,
       interruptor_llegada_10kv_estado: v.interruptor_llegada_10kv_estado,
@@ -309,8 +385,6 @@ export class NuevoParte implements OnInit {
       totalizador_final:   v.totalizador_final,
       nivel_cisterna_final: n(v.nivel_cisterna_final),
       presion_linea_final:  n(v.presion_linea_final),
-
-      // Tensiones opcionales → null si vacío
       tension_llegada: {
         fase_R: n(v.llegada_fase_R),
         fase_S: n(v.llegada_fase_S),
@@ -321,54 +395,44 @@ export class NuevoParte implements OnInit {
         fase_S: n(v.tablero_fase_S),
         fase_T: n(v.tablero_fase_T)
       },
-
-      // Lectura inicial — hora como null si vacía (campo TIME en BD)
       lectura_inicial: {
-        hora_registro:        n(v.inicial_hora_registro),   // ← TIME: "" → null
-        nivel_cisterna:       n(v.inicial_nivel_cisterna),
-        presion_linea:        n(v.inicial_presion_linea),
+        hora_registro:         n(v.inicial_hora_registro),
+        nivel_cisterna:        n(v.inicial_nivel_cisterna),
+        presion_linea:         n(v.inicial_presion_linea),
         presion_jatun_huaylla: n(v.inicial_presion_jatun_huaylla),
-        totalizador:          v.totalizador_inicial
+        totalizador:           v.totalizador_inicial
       },
-
-      // Lectura final — hora como null si vacía (campo TIME en BD)
       lectura_final: {
-        hora_registro:        n(v.final_hora_registro),     // ← TIME: "" → null
-        nivel_cisterna:       n(v.final_nivel_cisterna),
-        presion_linea:        n(v.final_presion_linea),
+        hora_registro:         n(v.final_hora_registro),
+        nivel_cisterna:        n(v.final_nivel_cisterna),
+        presion_linea:         n(v.final_presion_linea),
         presion_jatun_huaylla: n(v.final_presion_jatun_huaylla),
-        totalizador:          v.totalizador_final
+        totalizador:           v.totalizador_final
       },
-
-      // Condiciones — strings opcionales → null si vacíos
       condicion_habilitacion: {
-        estado_telemetria: n(v.habilitacion_estado_telemetria), // ← "" → null
+        estado_telemetria: n(v.habilitacion_estado_telemetria),
         presion_ingreso:   n(v.habilitacion_presion_ingreso)
       },
       condicion_desactivacion: {
-        estado_telemetria: n(v.desactivacion_estado_telemetria), // ← "" → null
+        estado_telemetria: n(v.desactivacion_estado_telemetria),
         presion_ingreso:   n(v.desactivacion_presion_ingreso)
       },
-
-      operadores: v.operadores
-        .filter((op: any) => op.nombre_operador?.trim())
-        .map((op: any, i: number) => ({
-          nombre_operador: op.nombre_operador,
-          numero_turno: i + 1
-        })),
-
-      // Aplanar registros de cada bomba en lista simple
+      operadores: this.operadoresArray.getRawValue()
+      .filter((op: any) => op.nombre_operador?.trim())
+      .map((op: any, i: number) => ({
+        nombre_operador: op.nombre_operador,
+        numero_turno: i + 1
+      })),
       bombeos: v.bombas.flatMap((b: any) =>
         b.registros.map((r: any) => ({
           bomba_id:          b.bomba_id,
           encendido:         r.encendido,
           apagado:           r.apagado,
           horometro_inicial: Number(r.horometro_inicial),
-          horometro_final:   Number(r.horometro_final),
+          horometro_final:   r.horometro_final ? Number(r.horometro_final) : null,
           observacion:       n(r.observacion)
         }))
       ),
-
       tableros: v.tableros.map((t: any) => ({
         tablero_id: t.tablero_id,
         momento:    t.momento,
@@ -377,8 +441,19 @@ export class NuevoParte implements OnInit {
         parada_emergencia_estado: n(t.parada_emergencia_estado),
         variador_estado:          n(t.variador_estado),
         alarma_estado:            n(t.alarma_estado)
-      }))
+      })),
     };
+
+    // ── NUEVO: agregar valores de activos si hay ──────────
+    if (this.valoresActivos.length > 0) {
+      payload.registros_activo = this.valoresActivos
+        .filter(v => v.valor !== '')
+        .map(v => ({
+          activo_id: v.activo_id,
+          campo_id:  v.campo_id,
+          valor:     v.valor,
+        }));
+    }
 
     this.operacionesService.crearParte(payload).subscribe({
       next: () => {

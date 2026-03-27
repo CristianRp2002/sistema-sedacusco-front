@@ -23,6 +23,7 @@
   "private": true,
   "packageManager": "npm@11.8.0",
   "dependencies": {
+    "@angular/animations": "^21.1.4",
     "@angular/common": "^21.1.0",
     "@angular/compiler": "^21.1.0",
     "@angular/core": "^21.1.0",
@@ -35,6 +36,7 @@
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",
     "material-icons": "^1.13.14",
+    "ngx-toastr": "^20.0.5",
     "pdfmake": "^0.3.5",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

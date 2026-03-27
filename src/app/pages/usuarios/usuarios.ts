@@ -7,6 +7,7 @@ import { SearchBarComponent } from '../../shared/components/search-bar/search-ba
 import { ModalComponent } from '../../shared/components/modal/modal';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge';
 import { FormInputComponent } from '../../shared/components/form-input/form-input';
+import { NotificacionService } from '../../services/notificacion.service';
 
 @Component({
   selector: 'app-usuarios',
@@ -16,6 +17,7 @@ import { FormInputComponent } from '../../shared/components/form-input/form-inpu
   styleUrl: './usuarios.css'
 })
 export class Usuarios implements OnInit {
+  private notificacion = inject(NotificacionService);
   private fb = inject(FormBuilder);
   private usuariosService = inject(UsuariosService);
   private cdr = inject(ChangeDetectorRef);
@@ -31,7 +33,9 @@ export class Usuarios implements OnInit {
     nombre_completo: ['', [Validators.required, Validators.minLength(3)]],
     username: ['', [Validators.required, Validators.minLength(3)]],
     password: ['', [Validators.minLength(6)]],
-    rol_id: ['', Validators.required]
+    rol_id: ['', Validators.required],
+    telefono:        [''],   
+    dni:             [''],   
   });
 
   ngOnInit() {
@@ -87,8 +91,10 @@ export class Usuarios implements OnInit {
     this.mostrarPassword = false;
     this.usuarioForm.patchValue({
       nombre_completo: usuario.nombre_completo,
-      username: usuario.username,
-      rol_id: usuario.rol?.id
+      username:        usuario.username,
+      rol_id:          usuario.rol?.id,
+      telefono:        usuario.telefono,
+      dni:             usuario.dni,
     });
     this.usuarioForm.get('password')?.clearValidators();
     this.usuarioForm.get('password')?.updateValueAndValidity();
@@ -121,29 +127,43 @@ export class Usuarios implements OnInit {
 
     if (this.usuarioEditando) {
       this.usuariosService.actualizarUsuario(this.usuarioEditando.id, datosFinales).subscribe({
-        next: () => { this.cerrarModal(); this.cargarUsuarios(); },
-        error: (err) => console.error('Error actualizando', err)
+        next: () => {
+          this.notificacion.exito('Usuario actualizado correctamente');
+          this.cerrarModal();
+          this.cargarUsuarios();
+        },
+        error: (err) => this.notificacion.error(err?.error?.message || 'Error al actualizar usuario')
       });
     } else {
       this.usuariosService.crearUsuario({ ...datosFinales, password }).subscribe({
-        next: () => { this.cerrarModal(); this.cargarUsuarios(); },
-        error: (err) => console.error('Error creando', err)
+        next: () => {
+          this.notificacion.exito('Usuario creado correctamente');
+          this.cerrarModal();
+          this.cargarUsuarios();
+        },
+        error: (err) => this.notificacion.error(err?.error?.message || 'Error al crear usuario')
       });
     }
   }
 
   toggleEstado(usuario: any) {
     this.usuariosService.toggleEstado(usuario.id, !usuario.activo).subscribe({
-      next: () => this.cargarUsuarios(),
-      error: (err) => console.error('Error cambiando estado', err)
+      next: () => {
+        this.notificacion.exito(usuario.activo ? 'Usuario desactivado' : 'Usuario activado');
+        this.cargarUsuarios();
+      },
+      error: (err) => this.notificacion.error('Error al cambiar estado')
     });
   }
 
   eliminarUsuario(usuario: any) {
     if (confirm(`¿Estás seguro de eliminar a ${usuario.nombre_completo}?`)) {
       this.usuariosService.eliminarUsuario(usuario.id).subscribe({
-        next: () => this.cargarUsuarios(),
-        error: (err) => console.error('Error eliminando', err)
+        next: () => {
+          this.notificacion.exito(`${usuario.nombre_completo} eliminado correctamente`);
+          this.cargarUsuarios();
+        },
+        error: (err) => this.notificacion.error('Error al eliminar usuario')
       });
     }
   }

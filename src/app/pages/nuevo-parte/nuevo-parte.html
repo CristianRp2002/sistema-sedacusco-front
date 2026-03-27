@@ -7,8 +7,8 @@
   <!-- WIZARD PASOS -->
   <div class="bg-white rounded-2xl shadow-sm border mb-6 p-4" style="border-color: #E2E8F0;">
     <div class="flex items-center justify-between">
-      <div *ngFor="let paso of [1,2,3,4,5,6]; let i = index"
-        class="flex items-center" [class.flex-1]="i < 5">
+      <div *ngFor="let paso of [1,2,3,4,5,6,7]; let i = index"
+        class="flex items-center" [class.flex-1]="i < 6">
         <button (click)="irAPaso(paso)"
           class="flex items-center gap-2 px-3 py-2 rounded-xl transition-all text-xs font-bold"
           [style.background]="pasoActual === paso ? '#0072BC' : pasoActual > paso ? '#DCFCE7' : '#F8FAFC'"
@@ -19,10 +19,10 @@
             {{ pasoActual > paso ? '✓' : paso }}
           </span>
           <span class="hidden sm:block">
-            {{ ['Datos', 'Inspección', 'Lec. Inicial', 'Bombas', 'Lec. Final', 'Cierre'][i] }}
+            {{ ['Datos', 'Inspección', 'Lec. Inicial', 'Bombas', 'Equipos', 'Lec. Final', 'Cierre'][i] }}
           </span>
         </button>
-        <div *ngIf="i < 5" class="flex-1 h-0.5 mx-1" style="background: #E2E8F0;"></div>
+        <div *ngIf="i < 6" class="flex-1 h-0.5 mx-1" style="background: #E2E8F0;"></div>
       </div>
     </div>
   </div>
@@ -31,55 +31,96 @@
 
     <!-- PASO 1 -->
     <div *ngIf="pasoActual === 1" class="space-y-4">
+
+      <!-- Datos Generales -->
       <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
         <h3 class="text-base font-bold mb-4" style="color: #0F172A;">Datos Generales</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fecha del Folio</label>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">
+              Fecha del Folio <span style="color: #EF4444;">*</span>
+            </label>
             <input type="date" formControlName="fecha_folio"
-              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
-              [style.border-color]="form.get('fecha_folio')?.invalid && form.get('fecha_folio')?.touched ? '#EF4444' : '#E2E8F0'"
-              style="color: #1E293B;">
-            <p *ngIf="form.get('fecha_folio')?.invalid && form.get('fecha_folio')?.touched" class="text-xs mt-1" style="color: #EF4444;">La fecha es obligatoria</p>
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all"
+              style="border-color: #E2E8F0; color: #1E293B;">
           </div>
           <div>
-            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Estación</label>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">
+              Estación <span style="color: #EF4444;">*</span>
+            </label>
             <select formControlName="estacion_id" (change)="onEstacionChange()"
-              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
-              [style.border-color]="form.get('estacion_id')?.invalid && form.get('estacion_id')?.touched ? '#EF4444' : '#E2E8F0'"
-              style="color: #1E293B;">
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all"
+              style="border-color: #E2E8F0; color: #1E293B;">
               <option value="">Selecciona una estación</option>
               <option *ngFor="let e of estaciones" [value]="e.id">{{ e.nombre }}</option>
             </select>
-            <p *ngIf="form.get('estacion_id')?.invalid && form.get('estacion_id')?.touched" class="text-xs mt-1" style="color: #EF4444;">Selecciona una estación</p>
           </div>
         </div>
-        <div *ngIf="estacionSeleccionada" class="mt-4 p-4 rounded-xl" style="background: #F0F9FF; border: 1px solid #BAE6FD;">
-          <p class="text-xs font-bold mb-2" style="color: #0369A1;">Estación seleccionada</p>
-          <div class="flex gap-4 text-xs" style="color: #0369A1;">
+
+        <!-- Info estación seleccionada -->
+        <div *ngIf="estacionSeleccionada" class="mt-4 p-4 rounded-xl flex items-center gap-4"
+          style="background: #F0F9FF; border: 1px solid #BAE6FD;">
+          <span class="material-icons" style="color: #0369A1; font-size: 20px;">factory</span>
+          <div class="flex gap-6 text-xs" style="color: #0369A1;">
+            <span class="font-bold">{{ estacionSeleccionada.nombre }}</span>
             <span>🔧 {{ estacionSeleccionada.bombas?.length || 0 }} bombas</span>
             <span>⚡ {{ estacionSeleccionada.tableros?.length || 0 }} tableros</span>
           </div>
         </div>
       </div>
 
+      <!-- Operadores -->
       <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-base font-bold" style="color: #0F172A;">Operadores de Turno</h3>
-          <button type="button" (click)="agregarOperador()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white" style="background: #0072BC;">+ Agregar</button>
+          <div>
+            <h3 class="text-base font-bold" style="color: #0F172A;">Operadores de Turno</h3>
+            <p class="text-xs mt-0.5" style="color: #94A3B8;">El primer turno se registra automáticamente</p>
+          </div>
+          <button type="button" (click)="agregarOperador()"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all hover:opacity-90"
+            style="background: #0072BC;">
+            <span class="material-icons" style="font-size: 14px;">add</span>
+            Agregar
+          </button>
         </div>
+
         <div formArrayName="operadores" class="space-y-3">
           <div *ngFor="let op of operadoresArray.controls; let i = index" [formGroupName]="i"
-            class="flex items-start gap-3 p-3 rounded-xl" style="background: #F8FAFC;">
-            <span class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-5" style="background: #0072BC;">{{ i + 1 }}</span>
-            <div class="flex-1">
-              <label class="block text-xs font-bold mb-1" style="color: #475569;">{{ ['PRIMER', 'SEGUNDO', 'TERCER'][i] || (i+1)+'°' }} TURNO</label>
-              <input type="text" formControlName="nombre_operador" placeholder="Nombre completo del operador"
-                class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
-                [style.border-color]="operadorTieneError(i) ? '#EF4444' : '#E2E8F0'" style="color: #1E293B;">
-              <p *ngIf="operadorTieneError(i)" class="text-xs mt-1" style="color: #EF4444;">{{ getMensajeErrorOperador(i) }}</p>
+            class="flex items-center gap-3 p-3 rounded-xl"
+            [style.background]="i === 0 ? '#F0F9FF' : '#F8FAFC'"
+            [style.border]="i === 0 ? '1px solid #BAE6FD' : '1px solid transparent'">
+
+            <!-- Número de turno -->
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+              [style.background]="i === 0 ? '#0072BC' : '#94A3B8'">
+              {{ i + 1 }}
             </div>
-            <button *ngIf="i >= 3" type="button" (click)="eliminarOperador(i)" class="text-red-400 hover:text-red-600 text-lg mt-4">✕</button>
+
+            <div class="flex-1">
+              <label class="block text-xs font-bold mb-1" style="color: #475569;">
+                {{ ['PRIMER', 'SEGUNDO', 'TERCER'][i] || (i+1)+'°' }} TURNO
+              </label>
+
+              <!-- Primer operador — solo lectura -->
+              <div *ngIf="i === 0"
+                class="w-full px-3 py-2 rounded-xl border text-sm flex items-center gap-2"
+                style="background: white; border-color: #BAE6FD; color: #0369A1;">
+                <span class="material-icons" style="font-size: 14px; color: #BAE6FD;">lock</span>
+                {{ operadoresArray.at(0).getRawValue().nombre_operador }}
+              </div>
+
+              <!-- Resto de operadores -->
+              <input *ngIf="i > 0" type="text" formControlName="nombre_operador"
+                placeholder="Nombre completo del operador"
+                class="w-full px-3 py-2 rounded-xl border text-sm outline-none transition-all"
+                style="border-color: #E2E8F0; color: #1E293B;">
+            </div>
+
+            <button *ngIf="i >= 3" type="button" (click)="eliminarOperador(i)"
+              class="p-1.5 rounded-lg transition-all hover:bg-red-50"
+              style="color: #EF4444;">
+              <span class="material-icons" style="font-size: 16px;">close</span>
+            </button>
           </div>
         </div>
       </div>
@@ -91,27 +132,65 @@
         <h3 class="text-base font-bold mb-4" style="color: #0F172A;">I. Inspección del Sistema de Protección</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
-            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Interruptor Llegada 10KV</label>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">
+              Interruptor Llegada 10KV <span style="color: #EF4444;">*</span>
+            </label>
             <input type="text" formControlName="interruptor_llegada_10kv_estado" placeholder="Ej: OK, Falla"
-              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;">
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
           </div>
           <div>
-            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Temperatura Transformador (°C)</label>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">
+              Temperatura Transformador (°C) <span style="color: #EF4444;">*</span>
+            </label>
             <input type="number" formControlName="transformador_temperatura" placeholder="Ej: 45"
-              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;">
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
           </div>
         </div>
+
         <p class="text-xs font-bold mb-3" style="color: #475569;">IND. Tensión de Llegada (KV)</p>
         <div class="grid grid-cols-3 gap-4 mb-6">
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase R</label><input type="number" formControlName="llegada_fase_R" placeholder="R" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase S</label><input type="number" formControlName="llegada_fase_S" placeholder="S" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase T</label><input type="number" formControlName="llegada_fase_T" placeholder="T" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase R</label>
+            <input type="number" formControlName="llegada_fase_R" placeholder="0"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase S</label>
+            <input type="number" formControlName="llegada_fase_S" placeholder="0"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase T</label>
+            <input type="number" formControlName="llegada_fase_T" placeholder="0"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
         </div>
+
         <p class="text-xs font-bold mb-3" style="color: #475569;">Tensión Tablero General (V)</p>
         <div class="grid grid-cols-3 gap-4">
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase R</label><input type="number" formControlName="tablero_fase_R" placeholder="R" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase S</label><input type="number" formControlName="tablero_fase_S" placeholder="S" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase T</label><input type="number" formControlName="tablero_fase_T" placeholder="T" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase R</label>
+            <input type="number" formControlName="tablero_fase_R" placeholder="0"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase S</label>
+            <input type="number" formControlName="tablero_fase_S" placeholder="0"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Fase T</label>
+            <input type="number" formControlName="tablero_fase_T" placeholder="0"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
         </div>
       </div>
     </div>
@@ -123,27 +202,36 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Tablero Telemetría</label>
-            <input type="text" formControlName="habilitacion_estado_telemetria" placeholder="Ej: OK, Falla" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;">
+            <input type="text" formControlName="habilitacion_estado_telemetria" placeholder="Ej: OK, Falla"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
           </div>
           <div>
             <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Ingreso (LTS)</label>
-            <input type="number" formControlName="habilitacion_presion_ingreso" placeholder="Ej: 28.9" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;">
+            <input type="number" formControlName="habilitacion_presion_ingreso" placeholder="Ej: 28.9"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
           </div>
         </div>
+
         <div *ngIf="getTablerosPorMomento('HABILITACION').length > 0">
           <p class="text-xs font-bold mb-3" style="color: #475569;">Estado de Tableros</p>
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
-              <thead><tr style="background: #F8FAFC;">
-                <th class="text-left px-3 py-2 font-bold" style="color: #475569;">TABLERO</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">INTERRUPTOR</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">SELECTOR</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">PARADA EMERG.</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">VARIADOR</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">ALARMA</th>
-              </tr></thead>
+              <thead>
+                <tr style="background: #F8FAFC;">
+                  <th class="text-left px-3 py-2 font-bold" style="color: #475569;">TABLERO</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">INTERRUPTOR</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">SELECTOR</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">PARADA EMERG.</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">VARIADOR</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">ALARMA</th>
+                </tr>
+              </thead>
               <tbody formArrayName="tableros">
-                <tr *ngFor="let t of getTablerosPorMomento('HABILITACION'); let i = index" [formGroupName]="getTableroIndex('HABILITACION', i)" class="border-t" style="border-color: #F1F5F9;">
+                <tr *ngFor="let t of getTablerosPorMomento('HABILITACION'); let i = index"
+                  [formGroupName]="getTableroIndex('HABILITACION', i)"
+                  class="border-t" style="border-color: #F1F5F9;">
                   <td class="px-3 py-2 font-medium" style="color: #1E293B;">{{ t.get('tablero_nombre')?.value }}</td>
                   <td class="px-2 py-2"><input type="text" formControlName="interruptor_estado" placeholder="OK" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
                   <td class="px-2 py-2"><input type="text" formControlName="selector_estado" placeholder="Manual" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
@@ -160,101 +248,123 @@
       <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
         <h3 class="text-base font-bold mb-4" style="color: #0F172A;">III. Lectura Inicial</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Hora de Registro</label><input type="time" formControlName="inicial_hora_registro" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Nivel Cisterna EB</label><input type="number" formControlName="inicial_nivel_cisterna" placeholder="Ej: 3.80" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión de Línea</label><input type="number" formControlName="inicial_presion_linea" placeholder="Ej: 0.05" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
           <div>
-            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Totalizador Inicial <span style="color: #EF4444;">*</span></label>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Hora de Registro</label>
+            <input type="time" formControlName="inicial_hora_registro"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Nivel Cisterna EB</label>
+            <input type="number" formControlName="inicial_nivel_cisterna" placeholder="Ej: 3.80"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión de Línea</label>
+            <input type="number" formControlName="inicial_presion_linea" placeholder="Ej: 0.05"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">
+              Totalizador Inicial <span style="color: #EF4444;">*</span>
+            </label>
             <input type="number" formControlName="totalizador_inicial" placeholder="Ej: 1012625374"
               class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
-              [style.border-color]="form.get('totalizador_inicial')?.invalid && form.get('totalizador_inicial')?.touched ? '#EF4444' : '#E2E8F0'" style="color: #1E293B;">
-            <p *ngIf="form.get('totalizador_inicial')?.invalid && form.get('totalizador_inicial')?.touched" class="text-xs mt-1" style="color: #EF4444;">El totalizador inicial es obligatorio</p>
+              style="border-color: #E2E8F0; color: #1E293B;">
           </div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Cisterna Jatun Huaylla</label><input type="number" formControlName="inicial_presion_jatun_huaylla" placeholder="Ej: 2.5" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Cisterna Jatun Huaylla</label>
+            <input type="number" formControlName="inicial_presion_jatun_huaylla" placeholder="Ej: 2.5"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════ -->
-    <!-- PASO 4: BOMBAS con registros múltiples -->
-    <!-- ═══════════════════════════════════ -->
+    <!-- PASO 4 -->
     <div *ngIf="pasoActual === 4">
       <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
         <h3 class="text-base font-bold mb-4" style="color: #0F172A;">IV. Encendido y Apagado de Bombas</h3>
 
-        <div *ngIf="bombasArray.length === 0" class="text-center py-8" style="color: #94A3B8;">
-          <p class="text-sm">Selecciona una estación primero para cargar las bombas</p>
+        <div *ngIf="bombasArray.length === 0"
+          class="text-center py-12 rounded-xl" style="background: #F8FAFC; color: #94A3B8;">
+          <span class="material-icons text-4xl mb-2" style="color: #CBD5E1;">settings</span>
+          <p class="text-sm font-medium">Selecciona una estación primero para cargar las bombas</p>
         </div>
 
-        <!-- formArrayName="bombas" — un item por cada bomba de la estación -->
         <div formArrayName="bombas" class="space-y-6">
           <div *ngFor="let bomba of bombasArray.controls; let i = index"
             [formGroupName]="i"
             class="p-4 rounded-xl border" style="border-color: #BAE6FD; background: #F8FAFC;">
 
-            <!-- Encabezado de la bomba -->
-            <div class="flex items-center justify-between mb-3">
-              <p class="text-sm font-bold" style="color: #0072BC;">
-                🔧 {{ bomba.get('bomba_nombre')?.value }}
-              </p>
-              <!-- Botón para agregar un nuevo registro de encendido/apagado -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="material-icons" style="font-size: 18px; color: #0072BC;">settings</span>
+                <p class="text-sm font-bold" style="color: #0072BC;">{{ bomba.get('bomba_nombre')?.value }}</p>
+              </div>
               <button type="button" (click)="agregarRegistro(i)"
-                class="px-3 py-1.5 rounded-xl text-xs font-bold text-white"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all hover:opacity-90"
                 style="background: #0072BC;">
-                + Agregar encendido
+                <span class="material-icons" style="font-size: 14px;">add</span>
+                Agregar encendido
               </button>
             </div>
 
-            <!-- formArrayName="registros" — encendidos/apagados de esta bomba -->
             <div formArrayName="registros" class="space-y-3">
               <div *ngFor="let registro of getRegistrosBomba(i).controls; let j = index"
                 [formGroupName]="j"
-                class="p-3 rounded-xl border" style="border-color: #E2E8F0; background: #fff;">
+                class="p-4 rounded-xl border" style="border-color: #E2E8F0; background: #fff;">
 
-                <!-- Número de registro + botón eliminar -->
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-xs font-bold px-2 py-0.5 rounded-full text-white" style="background: #64748B;">
-                    Registro {{ j + 1 }}
-                  </span>
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-bold px-2 py-0.5 rounded-full text-white"
+                    style="background: #64748B;">Registro {{ j + 1 }}</span>
                   <button *ngIf="getRegistrosBomba(i).length > 1"
                     type="button" (click)="eliminarRegistro(i, j)"
-                    class="text-xs font-bold px-2 py-0.5 rounded-full"
+                    class="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full transition-all hover:opacity-80"
                     style="color: #EF4444; background: #FEF2F2;">
-                    ✕ Eliminar
+                    <span class="material-icons" style="font-size: 12px;">close</span>
+                    Eliminar
                   </button>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
-                    <label class="block text-xs font-bold mb-1" style="color: #475569;">Encendido <span style="color:#EF4444">*</span></label>
+                    <label class="block text-xs font-bold mb-1" style="color: #475569;">
+                      Encendido <span style="color:#EF4444">*</span>
+                    </label>
                     <input type="time" formControlName="encendido"
                       class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
-                      [style.border-color]="registro.get('encendido')?.invalid && registro.get('encendido')?.touched ? '#EF4444' : '#E2E8F0'"
-                      style="color: #1E293B;">
+                      style="border-color: #E2E8F0; color: #1E293B;">
                   </div>
                   <div>
-                    <label class="block text-xs font-bold mb-1" style="color: #475569;">Apagado <span style="color:#EF4444">*</span></label>
+                    <label class="block text-xs font-bold mb-1" style="color: #475569;">
+                      Apagado <span style="color:#EF4444">*</span>
+                    </label>
                     <input type="time" formControlName="apagado"
                       class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
-                      [style.border-color]="registro.get('apagado')?.invalid && registro.get('apagado')?.touched ? '#EF4444' : '#E2E8F0'"
-                      style="color: #1E293B;">
+                      style="border-color: #E2E8F0; color: #1E293B;">
                   </div>
                   <div>
-                    <label class="block text-xs font-bold mb-1" style="color: #475569;">Horómetro Inicial <span style="color:#EF4444">*</span></label>
+                    <label class="block text-xs font-bold mb-1" style="color: #475569;">
+                      Horómetro Inicial <span style="color:#EF4444">*</span>
+                    </label>
                     <input type="number" formControlName="horometro_inicial" placeholder="0.00"
                       class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
-                      [style.border-color]="registro.get('horometro_inicial')?.invalid && registro.get('horometro_inicial')?.touched ? '#EF4444' : '#E2E8F0'"
-                      style="color: #1E293B;">
+                      style="border-color: #E2E8F0; color: #1E293B;">
                   </div>
                   <div>
-                    <label class="block text-xs font-bold mb-1" style="color: #475569;">Horómetro Final <span style="color:#EF4444">*</span></label>
+                    <label class="block text-xs font-bold mb-1" style="color: #475569;">
+                      Horómetro Final <span style="color:#EF4444">*</span>
+                    </label>
                     <input type="number" formControlName="horometro_final" placeholder="0.00"
                       class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
-                      [style.border-color]="registro.get('horometro_final')?.invalid && registro.get('horometro_final')?.touched ? '#EF4444' : '#E2E8F0'"
-                      style="color: #1E293B;">
+                      style="border-color: #E2E8F0; color: #1E293B;">
                   </div>
                 </div>
-                <div class="mt-2">
+                <div class="mt-3">
                   <label class="block text-xs font-bold mb-1" style="color: #475569;">Observación</label>
                   <input type="text" formControlName="observacion" placeholder="Opcional"
                     class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
@@ -262,35 +372,90 @@
                 </div>
               </div>
             </div>
-            <!-- fin registros -->
 
           </div>
         </div>
-        <!-- fin bombas -->
-
       </div>
     </div>
 
     <!-- PASO 5 -->
     <div *ngIf="pasoActual === 5">
       <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
-        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">V. Lectura Final</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Hora de Registro</label><input type="time" formControlName="final_hora_registro" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Nivel Cisterna EB</label><input type="number" formControlName="final_nivel_cisterna" placeholder="Ej: 3.64" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión de Línea</label><input type="number" formControlName="final_presion_linea" placeholder="Ej: 162.4" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div>
-            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Totalizador Final <span style="color: #EF4444;">*</span></label>
-            <input type="number" formControlName="totalizador_final" placeholder="Ej: 1012627033"
-              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
-              [style.border-color]="form.get('totalizador_final')?.invalid && form.get('totalizador_final')?.touched ? '#EF4444' : '#E2E8F0'" style="color: #1E293B;">
-            <p *ngIf="form.get('totalizador_final')?.invalid && form.get('totalizador_final')?.touched" class="text-xs mt-1" style="color: #EF4444;">El totalizador final es obligatorio</p>
-          </div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Cisterna Jatun Huaylla</label><input type="number" formControlName="final_presion_jatun_huaylla" placeholder="Ej: 2.5" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div>
-            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Producción Calculada</label>
-            <div class="w-full px-4 py-2.5 rounded-xl border text-sm font-bold" style="border-color: #BAE6FD; background: #F0F9FF; color: #0369A1;">
-              {{ produccionCalculada | number:'1.0-3' }} m³
+        <h3 class="text-base font-bold mb-1" style="color: #0F172A;">V. Registro de Equipos</h3>
+        <p class="text-xs mb-6" style="color: #94A3B8;">Ingresa las lecturas de cada equipo de la estación</p>
+
+        <div *ngIf="activosEstacion.length === 0"
+          class="text-center py-12 rounded-xl" style="background: #F8FAFC; color: #94A3B8;">
+          <span class="material-icons text-4xl mb-2" style="color: #CBD5E1;">inventory_2</span>
+          <p class="text-sm font-medium">Esta estación no tiene equipos registrados</p>
+        </div>
+
+        <div class="space-y-4">
+          <div *ngFor="let activo of activosEstacion"
+            class="p-4 rounded-xl border" style="border-color: #E2E8F0; background: #F8FAFC;">
+
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
+                <span class="material-icons text-white" style="font-size: 16px;">settings</span>
+              </div>
+              <div>
+                <p class="text-sm font-bold" style="color: #0F172A;">{{ activo.nombre }}</p>
+                <p class="text-xs" style="color: #94A3B8;">
+                  {{ activo.tipoActivo?.nombre }} · {{ activo.codigo || 'Sin código' }}
+                </p>
+              </div>
+            </div>
+
+            <div *ngIf="!activo.tipoActivo?.campos || activo.tipoActivo?.campos?.length === 0"
+              class="text-xs px-3 py-2 rounded-lg" style="background: #FFF7ED; color: #92400E;">
+              Sin campos definidos para este tipo de equipo
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div *ngFor="let campo of activo.tipoActivo?.campos">
+                <label class="block text-xs font-bold mb-1" style="color: #475569;">
+                  {{ campo.etiqueta }}
+                  <span *ngIf="campo.requerido" style="color: #EF4444;">*</span>
+                  <span *ngIf="campo.unidad" style="color: #94A3B8; font-weight: 400;"> ({{ campo.unidad }})</span>
+                </label>
+
+                <input *ngIf="campo.tipo_input === 'numero'" type="number"
+                  [value]="getValor(activo.id, campo.id)"
+                  (input)="setValor(activo.id, campo.id, $event)"
+                  placeholder="Ej: 3.95"
+                  class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                  style="border-color: #E2E8F0; color: #1E293B;">
+
+                <input *ngIf="campo.tipo_input === 'hora'" type="time"
+                  [value]="getValor(activo.id, campo.id)"
+                  (input)="setValor(activo.id, campo.id, $event)"
+                  class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                  style="border-color: #E2E8F0; color: #1E293B;">
+
+                <input *ngIf="campo.tipo_input === 'texto'" type="text"
+                  [value]="getValor(activo.id, campo.id)"
+                  (input)="setValor(activo.id, campo.id, $event)"
+                  placeholder="Ej: OK"
+                  class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                  style="border-color: #E2E8F0; color: #1E293B;">
+
+                <div *ngIf="campo.tipo_input === 'booleano'"
+                  class="flex items-center gap-3 px-3 py-2 rounded-xl border"
+                  style="border-color: #E2E8F0; background: white;">
+                  <input type="checkbox"
+                    [checked]="getValor(activo.id, campo.id) === 'true'"
+                    (change)="setValor(activo.id, campo.id, $event)"
+                    class="w-4 h-4 cursor-pointer" style="accent-color: #0072BC;">
+                  <span class="text-sm" style="color: #1E293B;">{{ campo.etiqueta }}</span>
+                </div>
+
+                <input *ngIf="campo.tipo_input === 'fecha'" type="date"
+                  [value]="getValor(activo.id, campo.id)"
+                  (input)="setValor(activo.id, campo.id, $event)"
+                  class="w-full px-3 py-2 rounded-xl border text-sm outline-none"
+                  style="border-color: #E2E8F0; color: #1E293B;">
+              </div>
             </div>
           </div>
         </div>
@@ -298,27 +463,91 @@
     </div>
 
     <!-- PASO 6 -->
-    <div *ngIf="pasoActual === 6" class="space-y-4">
+    <div *ngIf="pasoActual === 6">
       <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
-        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">VI. Desactivación de Equipos</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Tablero Telemetría</label><input type="text" formControlName="desactivacion_estado_telemetria" placeholder="Ej: OK" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
-          <div><label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Ingreso (LTS)</label><input type="number" formControlName="desactivacion_presion_ingreso" placeholder="Ej: 26.4" class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none" style="border-color: #E2E8F0; color: #1E293B;"></div>
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">VI. Lectura Final</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Hora de Registro</label>
+            <input type="time" formControlName="final_hora_registro"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Nivel Cisterna EB</label>
+            <input type="number" formControlName="final_nivel_cisterna" placeholder="Ej: 3.64"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión de Línea</label>
+            <input type="number" formControlName="final_presion_linea" placeholder="Ej: 162.4"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">
+              Totalizador Final <span style="color: #EF4444;">*</span>
+            </label>
+            <input type="number" formControlName="totalizador_final" placeholder="Ej: 1012627033"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Cisterna Jatun Huaylla</label>
+            <input type="number" formControlName="final_presion_jatun_huaylla" placeholder="Ej: 2.5"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Producción Calculada</label>
+            <div class="w-full px-4 py-2.5 rounded-xl border text-sm font-bold flex items-center gap-2"
+              style="border-color: #BAE6FD; background: #F0F9FF; color: #0369A1;">
+              <span class="material-icons" style="font-size: 16px;">water_drop</span>
+              {{ produccionCalculada | number:'1.0-3' }} m³
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div *ngIf="pasoActual === 7" class="space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
+        <h3 class="text-base font-bold mb-4" style="color: #0F172A;">VII. Desactivación de Equipos</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Tablero Telemetría</label>
+            <input type="text" formControlName="desactivacion_estado_telemetria" placeholder="Ej: OK"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1.5" style="color: #475569;">Presión Ingreso (LTS)</label>
+            <input type="number" formControlName="desactivacion_presion_ingreso" placeholder="Ej: 26.4"
+              class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+              style="border-color: #E2E8F0; color: #1E293B;">
+          </div>
+        </div>
+
         <div *ngIf="getTablerosPorMomento('DESACTIVACION').length > 0">
           <p class="text-xs font-bold mb-3" style="color: #475569;">Estado de Tableros</p>
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
-              <thead><tr style="background: #F8FAFC;">
-                <th class="text-left px-3 py-2 font-bold" style="color: #475569;">TABLERO</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">INTERRUPTOR</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">SELECTOR</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">PARADA EMERG.</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">VARIADOR</th>
-                <th class="text-center px-3 py-2 font-bold" style="color: #475569;">ALARMA</th>
-              </tr></thead>
+              <thead>
+                <tr style="background: #F8FAFC;">
+                  <th class="text-left px-3 py-2 font-bold" style="color: #475569;">TABLERO</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">INTERRUPTOR</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">SELECTOR</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">PARADA EMERG.</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">VARIADOR</th>
+                  <th class="text-center px-3 py-2 font-bold" style="color: #475569;">ALARMA</th>
+                </tr>
+              </thead>
               <tbody formArrayName="tableros">
-                <tr *ngFor="let t of getTablerosPorMomento('DESACTIVACION'); let i = index" [formGroupName]="getTableroIndex('DESACTIVACION', i)" class="border-t" style="border-color: #F1F5F9;">
+                <tr *ngFor="let t of getTablerosPorMomento('DESACTIVACION'); let i = index"
+                  [formGroupName]="getTableroIndex('DESACTIVACION', i)"
+                  class="border-t" style="border-color: #F1F5F9;">
                   <td class="px-3 py-2 font-medium" style="color: #1E293B;">{{ t.get('tablero_nombre')?.value }}</td>
                   <td class="px-2 py-2"><input type="text" formControlName="interruptor_estado" placeholder="OK" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
                   <td class="px-2 py-2"><input type="text" formControlName="selector_estado" placeholder="Manual" class="w-full px-2 py-1.5 rounded-lg border text-center text-xs outline-none" style="border-color: #E2E8F0;"></td>
@@ -332,16 +561,36 @@
         </div>
       </div>
 
+      <!-- Resumen -->
       <div class="bg-white rounded-2xl shadow-sm border p-6" style="border-color: #E2E8F0;">
         <h3 class="text-base font-bold mb-4" style="color: #0F172A;">Resumen del Parte</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="p-3 rounded-xl text-center" style="background: #F0F9FF;"><p class="text-xs font-bold mb-1" style="color: #0369A1;">Estación</p><p class="text-sm font-bold" style="color: #0F172A;">{{ estacionSeleccionada?.nombre || '—' }}</p></div>
-          <div class="p-3 rounded-xl text-center" style="background: #F0FDF4;"><p class="text-xs font-bold mb-1" style="color: #16A34A;">Producción</p><p class="text-sm font-bold" style="color: #0F172A;">{{ produccionCalculada | number:'1.0-3' }} m³</p></div>
-          <div class="p-3 rounded-xl text-center" style="background: #FFF7ED;"><p class="text-xs font-bold mb-1" style="color: #EA580C;">Bombas</p><p class="text-sm font-bold" style="color: #0F172A;">{{ bombasArray.length }}</p></div>
-          <div class="p-3 rounded-xl text-center" style="background: #FDF4FF;"><p class="text-xs font-bold mb-1" style="color: #9333EA;">Operadores</p><p class="text-sm font-bold" style="color: #0F172A;">{{ operadoresArray.length }}</p></div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="p-4 rounded-xl text-center" style="background: #F0F9FF;">
+            <span class="material-icons mb-1" style="color: #0369A1; font-size: 20px;">factory</span>
+            <p class="text-xs font-bold mb-0.5" style="color: #0369A1;">Estación</p>
+            <p class="text-sm font-black" style="color: #0F172A;">{{ estacionSeleccionada?.nombre || '—' }}</p>
+          </div>
+          <div class="p-4 rounded-xl text-center" style="background: #F0FDF4;">
+            <span class="material-icons mb-1" style="color: #16A34A; font-size: 20px;">water_drop</span>
+            <p class="text-xs font-bold mb-0.5" style="color: #16A34A;">Producción</p>
+            <p class="text-sm font-black" style="color: #0F172A;">{{ produccionCalculada | number:'1.0-0' }} m³</p>
+          </div>
+          <div class="p-4 rounded-xl text-center" style="background: #FFF7ED;">
+            <span class="material-icons mb-1" style="color: #EA580C; font-size: 20px;">settings</span>
+            <p class="text-xs font-bold mb-0.5" style="color: #EA580C;">Bombas</p>
+            <p class="text-sm font-black" style="color: #0F172A;">{{ bombasArray.length }}</p>
+          </div>
+          <div class="p-4 rounded-xl text-center" style="background: #FDF4FF;">
+            <span class="material-icons mb-1" style="color: #9333EA; font-size: 20px;">group</span>
+            <p class="text-xs font-bold mb-0.5" style="color: #9333EA;">Operadores</p>
+            <p class="text-sm font-black" style="color: #0F172A;">{{ operadoresArray.length }}</p>
+          </div>
         </div>
-        <div *ngIf="errorMensaje" class="mt-4 p-3 rounded-xl" style="background: #FEF2F2; border: 1px solid #FECACA;">
-          <p class="text-xs font-bold" style="color: #DC2626;">⚠ {{ errorMensaje }}</p>
+
+        <div *ngIf="errorMensaje" class="mt-4 p-3 rounded-xl flex items-center gap-2"
+          style="background: #FEF2F2; border: 1px solid #FECACA;">
+          <span class="material-icons" style="font-size: 16px; color: #DC2626;">error</span>
+          <p class="text-xs font-bold" style="color: #DC2626;">{{ errorMensaje }}</p>
         </div>
       </div>
     </div>
@@ -349,19 +598,40 @@
     <!-- NAVEGACIÓN -->
     <div class="flex items-center justify-between mt-6">
       <button type="button" (click)="anteriorPaso()" [disabled]="pasoActual === 1"
-        class="px-6 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50 disabled:opacity-30"
-        style="border-color: #E2E8F0; color: #64748B;">← Anterior</button>
+        class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50 disabled:opacity-30"
+        style="border-color: #E2E8F0; color: #64748B;">
+        <span class="material-icons" style="font-size: 16px;">arrow_back</span>
+        Anterior
+      </button>
+
       <div class="flex flex-col items-center gap-1">
-        <span class="text-xs font-bold" style="color: #94A3B8;">Paso {{ pasoActual }} de {{ totalPasos }}</span>
-        <p *ngIf="errorMensaje && pasoActual < totalPasos" class="text-xs font-bold" style="color: #EF4444;">⚠ {{ errorMensaje }}</p>
+        <div class="flex gap-1.5">
+          <div *ngFor="let p of [1,2,3,4,5,6,7]"
+            class="w-2 h-2 rounded-full transition-all"
+            [style.background]="pasoActual === p ? '#0072BC' : pasoActual > p ? '#16A34A' : '#E2E8F0'">
+          </div>
+        </div>
+        <span class="text-xs" style="color: #94A3B8;">Paso {{ pasoActual }} de {{ totalPasos }}</span>
+        <div *ngIf="errorMensaje && pasoActual < totalPasos"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold"
+          style="background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; max-width: 400px;">
+          <span class="material-icons" style="font-size: 14px; flex-shrink: 0;">error_outline</span>
+          {{ errorMensaje }}
+        </div>
       </div>
+
       <button *ngIf="pasoActual < totalPasos" type="button" (click)="siguientePaso()"
-        class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
-        style="background: #0072BC;">Siguiente →</button>
+        class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+        style="background: #0072BC;">
+        Siguiente
+        <span class="material-icons" style="font-size: 16px;">arrow_forward</span>
+      </button>
+
       <button *ngIf="pasoActual === totalPasos" type="submit" [disabled]="guardando"
-        class="px-8 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+        class="flex items-center gap-2 px-8 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
         style="background: linear-gradient(135deg, #16A34A, #22C55E);">
-        {{ guardando ? 'Guardando...' : '✓ Guardar Parte Diario' }}
+        <span class="material-icons" style="font-size: 16px;">{{ guardando ? 'hourglass_empty' : 'check_circle' }}</span>
+        {{ guardando ? 'Guardando...' : 'Guardar Parte Diario' }}
       </button>
     </div>
 
