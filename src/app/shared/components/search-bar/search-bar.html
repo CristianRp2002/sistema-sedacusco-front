@@ -1,11 +1,20 @@
 <div class="bg-white rounded-2xl px-5 py-4 flex items-center gap-4 border border-gray-100"
   style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+  
+  <button 
+    class="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 flex items-center justify-center outline-none"
+    (click)="toggleMenu.emit()"
+    title="Ocultar/Mostrar Menú">
+    <span class="material-icons" style="font-size: 24px;">menu</span>
+  </button>
+
   <div class="flex items-center gap-2 flex-1 px-3 py-2 rounded-xl" style="background: #f8fafc;">
     <span class="material-icons text-gray-400" style="font-size: 18px;">search</span>
     <input type="text" [placeholder]="placeholder"
       class="flex-1 bg-transparent text-sm outline-none" style="color: #1e293b;"
       (input)="buscar.emit($any($event.target).value)">
   </div>
+  
   <select *ngIf="filtros.length > 0"
     class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
     style="border-color: #e2e8f0; color: #475569;"

@@ -1,141 +1,327 @@
-<div class="space-y-6">
+<div class="space-y-6 pb-10">
 
-  <!-- Encabezado -->
   <app-page-header
     seccion="Reportes"
-    titulo="Reportes"
-    subtitulo="Exporta resúmenes mensuales y fichas individuales"
+    titulo="Análisis de Producción"
+    subtitulo="Dashboard analítico de bombeo y eficiencia operativa"
     botonTexto=""
     botonIcono="">
   </app-page-header>
 
-  <!-- Filtros -->
-  <div class="bg-white rounded-2xl px-5 py-4 flex items-center gap-4 border border-gray-100"
-    style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+  <div class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm rounded-2xl px-5 py-4 flex items-center gap-4 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
+    
     <div class="flex items-center gap-2">
-      <span class="material-icons text-gray-400" style="font-size: 18px;">calendar_month</span>
-      <select class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
-        style="border-color: #e2e8f0; color: #475569;"
+      <span class="material-icons text-gray-400 text-[18px]">calendar_month</span>
+      <select class="text-sm px-3 py-2 rounded-xl border border-slate-200 text-slate-600 outline-none font-medium focus:ring-2 focus:ring-blue-500 transition-all"
         [(ngModel)]="mesSeleccionado">
         <option *ngFor="let m of meses; let i = index" [value]="i+1">{{ m }}</option>
       </select>
     </div>
+
     <div class="flex items-center gap-2">
-      <select class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
-        style="border-color: #e2e8f0; color: #475569;"
+      <select class="text-sm px-3 py-2 rounded-xl border border-slate-200 text-slate-600 outline-none font-medium focus:ring-2 focus:ring-blue-500 transition-all"
         [(ngModel)]="anioSeleccionado">
         <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
       </select>
     </div>
+
     <div class="flex items-center gap-2">
-      <select class="text-sm px-3 py-2 rounded-xl border outline-none font-medium"
-        style="border-color: #e2e8f0; color: #475569;"
+      <select class="text-sm px-3 py-2 rounded-xl border border-slate-200 text-slate-600 outline-none font-medium focus:ring-2 focus:ring-blue-500 transition-all"
         [(ngModel)]="estacionSeleccionada">
         <option value="">Todas las estaciones</option>
         <option *ngFor="let e of estaciones" [value]="e.id">{{ e.nombre }}</option>
       </select>
     </div>
+
     <button (click)="cargarReporte()"
-      class="flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl font-bold text-white transition-all hover:opacity-90"
-      style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
-      <span class="material-icons" style="font-size: 16px;">search</span>
+      class="flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl font-bold text-white transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-[#0072BC] to-[#29ABE2] shadow-md">
+      <span class="material-icons text-[16px]">search</span>
       Generar
     </button>
   </div>
 
-  <!-- Resumen tarjetas -->
-  <div class="grid grid-cols-4 gap-4" *ngIf="partes.length > 0">
-    <div class="bg-white rounded-2xl p-5 border border-gray-100"
-      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
-      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: #94a3b8;">Total Producción</p>
-      <p class="text-3xl font-black" style="color: #001F4E;">{{ totalProduccion | number }}</p>
-      <p class="text-xs mt-1" style="color: #94a3b8;">m³ en el mes</p>
+  <div *ngIf="cargando" class="space-y-4">
+    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div *ngFor="let i of [1,2,3,4]" class="p-4 rounded-xl border border-gray-100">
+          <div class="animate-pulse bg-gray-200 h-3 w-24 rounded mb-3"></div>
+          <div class="animate-pulse bg-gray-200 h-8 w-20 rounded mb-2"></div>
+          <div class="animate-pulse bg-gray-200 h-3 w-16 rounded"></div>
+        </div>
+      </div>
+      <div class="animate-pulse bg-gray-200 rounded-xl h-64 w-full"></div>
     </div>
-    <div class="bg-white rounded-2xl p-5 border border-gray-100"
-      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
-      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: #94a3b8;">Días Operativos</p>
-      <p class="text-3xl font-black" style="color: #001F4E;">{{ partes.length }}</p>
-      <p class="text-xs mt-1" style="color: #94a3b8;">días con registro</p>
-    </div>
-    <div class="bg-white rounded-2xl p-5 border border-gray-100"
-      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
-      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: #94a3b8;">Total Horas Bombeo</p>
-      <p class="text-3xl font-black" style="color: #001F4E;">{{ totalHoras | number:'1.0-1' }}</p>
-      <p class="text-xs mt-1" style="color: #94a3b8;">horas en el mes</p>
-    </div>
-    <div class="bg-white rounded-2xl p-5 border border-gray-100"
-      style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
-      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: #94a3b8;">Promedio Diario</p>
-      <p class="text-3xl font-black" style="color: #001F4E;">{{ promedioDiario | number:'1.0-1' }}</p>
-      <p class="text-xs mt-1" style="color: #94a3b8;">m³ por día</p>
+
+    <div class="grid grid-cols-3 gap-4">
+      <div *ngFor="let i of [1,2,3]" class="rounded-xl p-5 bg-slate-100">
+        <div class="animate-pulse bg-gray-300 h-3 w-24 rounded mb-4"></div>
+        <div class="animate-pulse bg-gray-300 h-10 w-20 rounded mb-2"></div>
+        <div class="animate-pulse bg-gray-300 h-3 w-32 rounded"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Botones exportar -->
-  <div class="flex gap-3" *ngIf="partes.length > 0">
-    <button (click)="exportarExcel()"
-      class="flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl font-bold text-white transition-all hover:opacity-90 hover:shadow-lg"
-      style="background: linear-gradient(135deg, #16a34a, #22c55e);">
-      <span class="material-icons" style="font-size: 18px;">table_view</span>
-      Exportar Excel
-    </button>
+  <div *ngIf="partes.length > 0 && !cargando" class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+    
+    <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-br from-slate-50 to-white">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-xl font-bold text-[#001F4E]">
+            Resumen Ejecutivo: {{ nombreMesActual }} {{ anioSeleccionado }}
+          </h3>
+          <p class="text-sm mt-1 text-slate-500">
+            Comparativa con {{ nombreMesAnterior }} y análisis de tendencias
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button (click)="exportarExcel()"
+            class="flex items-center gap-2 text-sm px-4 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-green-600 to-green-500 shadow-md">
+            <span class="material-icons text-[16px]">table_view</span>
+            Excel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-6 p-6">
+      
+      <div class="grid grid-cols-4 gap-4">
+        
+        <div class="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border border-blue-100">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-icons text-[#0072BC] text-[20px]">water_drop</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Producción Total</p>
+          </div>
+          <p class="text-2xl font-black text-[#0072BC]">{{ totalProduccion | number }}</p>
+          <p class="text-xs mt-1 text-slate-500">m³ en el mes</p>
+          <div class="mt-2 pt-2 border-t border-blue-100">
+            <p class="text-xs font-semibold" [ngClass]="variacionProduccion >= 0 ? 'text-green-600' : 'text-red-600'">
+              {{ variacionProduccion >= 0 ? '▲' : '▼' }} {{ variacionProduccion | number:'1.1-1' }}% vs mes anterior
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-50 to-white p-4 rounded-xl border border-green-100">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-icons text-green-600 text-[20px]">schedule</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Horas de Bombeo</p>
+          </div>
+          <p class="text-2xl font-black text-green-600">{{ totalHoras | number:'1.0-1' }}</p>
+          <p class="text-xs mt-1 text-slate-500">horas operativas</p>
+          <div class="mt-2 pt-2 border-t border-green-100">
+            <p class="text-xs font-semibold" [ngClass]="variacionHoras >= 0 ? 'text-green-600' : 'text-red-600'">
+              {{ variacionHoras >= 0 ? '▲' : '▼' }} {{ variacionHoras | number:'1.1-1' }}% vs mes anterior
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-50 to-white p-4 rounded-xl border border-purple-100">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-icons text-purple-600 text-[20px]">speed</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Eficiencia</p>
+          </div>
+          <p class="text-2xl font-black text-purple-600">{{ eficienciaPromedio | number:'1.1-1' }}</p>
+          <p class="text-xs mt-1 text-slate-500">m³/hora promedio</p>
+          <div class="mt-2 pt-2 border-t border-purple-100">
+            <p class="text-xs font-semibold text-slate-500">
+              {{ partes.length }} días operativos
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-amber-50 to-white p-4 rounded-xl border border-amber-100">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-icons text-amber-500 text-[20px]">trending_up</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Promedio Diario</p>
+          </div>
+          <p class="text-2xl font-black text-amber-500">{{ promedioDiario | number:'1.0-1' }}</p>
+          <p class="text-xs mt-1 text-slate-500">m³ por día</p>
+        </div>
+
+      </div>
+
+      <div>
+        <app-graficos-bombeo
+          [partes]="partes"
+          [partesAnterior]="partesAnterior"
+          [nombreMesActual]="nombreMesActual"
+          [nombreMesAnterior]="nombreMesAnterior">
+        </app-graficos-bombeo>
+      </div>
+
+    </div>
   </div>
 
-  <!-- Tabla de partes -->
-  <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden"
-    style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);" *ngIf="partes.length > 0">
-    <table class="w-full text-sm">
-      <thead>
-        <tr style="background: #f8fafc; border-bottom: 1px solid #f1f5f9;">
-          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Fecha</th>
-          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Estación</th>
-          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Tot. Inicial</th>
-          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Tot. Final</th>
-          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Producción</th>
-          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">Horas Bombeo</th>
-          <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style="color: #94a3b8;">PDF</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let parte of partes"
-          class="transition-colors duration-150"
-          style="border-top: 1px solid #f8fafc;"
-          onmouseover="this.style.background='#f8fafc'"
-          onmouseout="this.style.background='white'">
-          <td class="px-6 py-4 font-semibold" style="color: #1e293b;">
-            {{ parte.fecha_folio | date:'dd/MM/yyyy' }}
-          </td>
-          <td class="px-6 py-4 font-medium" style="color: #475569;">{{ parte.estacion?.nombre }}</td>
-          <td class="px-6 py-4 font-medium" style="color: #475569;">{{ parte.totalizador_inicial | number }}</td>
-          <td class="px-6 py-4 font-medium" style="color: #475569;">{{ parte.totalizador_final | number }}</td>
-          <td class="px-6 py-4">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
-              style="background: #f0fdf4; color: #16a34a;">
-              {{ parte.produccion_calculada | number }} m³
-            </span>
-          </td>
-          <td class="px-6 py-4 font-medium" style="color: #475569;">
-            {{ getHorasBombeo(parte) | number:'1.0-1' }}h
-          </td>
-          <td class="px-6 py-4">
-            <button (click)="exportarPDF(parte)"
-              class="p-2 rounded-lg transition-all hover:shadow-md"
-              style="color: #dc2626; background: #fef2f2;" title="Exportar PDF">
-              <span class="material-icons" style="font-size: 16px;">picture_as_pdf</span>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div *ngIf="partes.length > 0 && !cargando" class="grid grid-cols-3 gap-4">
+    
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white shadow-[0_4px_16px_rgba(22,163,74,0.25)]">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-icons text-[24px]">emoji_events</span>
+        <p class="text-xs font-bold uppercase tracking-wider opacity-90">Mejor Desempeño</p>
+      </div>
+      <p class="text-3xl font-black mb-1">{{ mejorDia.fecha | date:'dd MMM' }}</p>
+      <p class="text-sm opacity-90">{{ mejorDia.produccion | number }} m³ producidos</p>
+      <p class="text-xs opacity-75 mt-2">
+        {{ mejorDia.produccion > promedioDiario ? '+' : '' }}{{ ((mejorDia.produccion - promedioDiario) / promedioDiario * 100) | number:'1.0-0' }}% sobre el promedio
+      </p>
+    </div>
+
+    <div *ngIf="diasConAlerta.length > 0"
+      class="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-5 text-white cursor-pointer hover:scale-[1.02] transition-transform shadow-[0_4px_16px_rgba(251,146,60,0.25)]"
+      (click)="scrollToTabla()">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-icons text-[24px]">warning</span>
+        <p class="text-xs font-bold uppercase tracking-wider opacity-90">Atención Requerida</p>
+      </div>
+      <p class="text-3xl font-black mb-1">{{ diasConAlerta.length }} días</p>
+      <p class="text-sm opacity-90">con bajo rendimiento detectado</p>
+      <p class="text-xs opacity-75 mt-2">Click para ver detalle →</p>
+    </div>
+
+    <div *ngIf="diasConAlerta.length === 0"
+      class="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl p-5 text-white shadow-[0_4px_16px_rgba(16,185,129,0.25)]">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-icons text-[24px]">check_circle</span>
+        <p class="text-xs font-bold uppercase tracking-wider opacity-90">Operación Óptima</p>
+      </div>
+      <p class="text-3xl font-black mb-1">100%</p>
+      <p class="text-sm opacity-90">Todos los días dentro de rango</p>
+      <p class="text-xs opacity-75 mt-2">Sin incidencias reportadas</p>
+    </div>
+
+    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-5 text-white shadow-[0_4px_16px_rgba(59,130,246,0.25)]">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-icons text-[24px]">show_chart</span>
+        <p class="text-xs font-bold uppercase tracking-wider opacity-90">Tendencia General</p>
+      </div>
+      <p class="text-3xl font-black mb-1">
+        {{ variacionProduccion >= 0 ? '🔼' : '🔽' }} {{ tendenciaTexto }}
+      </p>
+      <p class="text-sm opacity-90">
+        {{ variacionProduccion >= 0 ? '+' : '' }}{{ variacionProduccion | number:'1.1-1' }}% vs {{ nombreMesAnterior }}
+      </p>
+      <p class="text-xs opacity-75 mt-2">Análisis de {{ partes.length }} registros</p>
+    </div>
+
   </div>
 
-  <!-- Sin datos -->
+  <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.08)]" *ngIf="partes.length > 0">
+    
+    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center gap-4">
+      <div>
+        <h3 class="text-lg font-bold text-[#001F4E]">Registro Detallado por Día</h3>
+        <p class="text-sm mt-1 text-slate-500">{{ partesFiltradas.length }} días registrados</p>
+      </div>
+
+      <div class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+        <span class="material-icons text-[16px] text-slate-400">search</span>
+        <input
+          type="text"
+          placeholder="Buscar por estación..."
+          [(ngModel)]="busquedaTabla"
+          (ngModelChange)="filtrarTabla()"
+          class="text-sm outline-none bg-transparent w-[200px] text-slate-600">
+      </div>
+      
+      <button (click)="toggleTablaDetalle()"
+        class="flex items-center gap-2 text-sm px-4 py-2 rounded-lg font-semibold transition-all text-[#0072BC] bg-blue-50 border border-blue-200 hover:bg-blue-100">
+        <span class="material-icons text-[16px]">
+          {{ mostrarTablaDetalle ? 'expand_less' : 'expand_more' }}
+        </span>
+        {{ mostrarTablaDetalle ? 'Ocultar' : 'Mostrar' }} Detalle
+      </button>
+    </div>
+
+    <div *ngIf="mostrarTablaDetalle" [@slideDown] class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 border-b-2 border-slate-200">
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none hover:bg-gray-200 transition-colors text-slate-500"
+              (click)="ordenarPor('fecha')">
+              Fecha {{ columnaOrden === 'fecha' ? (ordenAscendente ? '↑' : '↓') : '↕' }}
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Estación</th>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Tot. Inicial</th>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Tot. Final</th>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none hover:bg-gray-200 transition-colors text-slate-500"
+              (click)="ordenarPor('produccion')">
+              Producción {{ columnaOrden === 'produccion' ? (ordenAscendente ? '↑' : '↓') : '↕' }}
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none hover:bg-gray-200 transition-colors text-slate-500"
+              (click)="ordenarPor('horas')">
+              Horas {{ columnaOrden === 'horas' ? (ordenAscendente ? '↑' : '↓') : '↕' }}
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none hover:bg-gray-200 transition-colors text-slate-500"
+              (click)="ordenarPor('eficiencia')">
+              Eficiencia {{ columnaOrden === 'eficiencia' ? (ordenAscendente ? '↑' : '↓') : '↕' }}
+            </th>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Estado</th>
+            <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">PDF</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let parte of partesFiltradas"
+            class="transition-colors duration-150 border-t border-slate-100 hover:bg-slate-50"
+            [class.bg-red-50]="getHorasBombeo(parte) < 17"
+            [class.bg-amber-50]="getHorasBombeo(parte) >= 17 && getHorasBombeo(parte) < 19">
+            
+            <td class="px-6 py-4 font-semibold text-slate-800">
+              {{ parte.fecha_folio | date:'dd/MM/yyyy' }}
+            </td>
+            <td class="px-6 py-4 font-medium text-slate-600">
+              {{ parte.estacion?.nombre }}
+            </td>
+            <td class="px-6 py-4 font-medium text-slate-500">
+              {{ parte.totalizador_inicial | number }}
+            </td>
+            <td class="px-6 py-4 font-medium text-slate-500">
+              {{ parte.totalizador_final | number }}
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-green-50 text-green-600">
+                {{ parte.produccion_calculada | number }} m³
+              </span>
+            </td>
+            <td class="px-6 py-4 font-semibold text-slate-800">
+              {{ getHorasBombeo(parte) | number:'1.1-1' }}h
+            </td>
+            <td class="px-6 py-4 font-semibold text-purple-600">
+              {{ getEficiencia(parte) | number:'1.1-1' }}
+            </td>
+            <td class="px-6 py-4">
+              <span *ngIf="getHorasBombeo(parte) >= 19"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold bg-green-100 text-green-700">
+                <span class="material-icons text-[14px]">check_circle</span>
+                Normal
+              </span>
+              <span *ngIf="getHorasBombeo(parte) >= 17 && getHorasBombeo(parte) < 19"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold bg-amber-100 text-amber-600">
+                <span class="material-icons text-[14px]">warning</span>
+                Alerta
+              </span>
+              <span *ngIf="getHorasBombeo(parte) < 17"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold bg-red-100 text-red-600">
+                <span class="material-icons text-[14px]">error</span>
+                Crítico
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <button (click)="exportarPDF(parte)"
+                class="p-2 rounded-lg transition-all hover:shadow-md text-red-600 bg-red-50 hover:bg-red-100" title="Exportar PDF">
+                <span class="material-icons text-[16px]">picture_as_pdf</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <div *ngIf="partes.length === 0 && buscado"
-    class="bg-white rounded-2xl border border-gray-100 px-6 py-12 text-center"
-    style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
-    <span class="material-icons text-4xl" style="color: #cbd5e1;">find_in_page</span>
-    <p class="text-sm font-medium mt-2" style="color: #94a3b8;">No se encontraron partes para este período</p>
+    class="bg-white rounded-2xl border border-gray-100 px-6 py-12 text-center shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+    <span class="material-icons text-6xl mb-4 text-slate-300">search_off</span>
+    <p class="text-lg font-bold mb-2 text-slate-500">No hay datos disponibles</p>
+    <p class="text-sm text-slate-400">No se encontraron partes para este período. Intenta con otra fecha.</p>
   </div>
-  
 
 </div>

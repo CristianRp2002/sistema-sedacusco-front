@@ -1,0 +1,127 @@
+<div class="container-graficos">
+  
+  <div class="header-graficos">
+    <h2 class="titulo">Análisis de Bombeo</h2>
+    <div class="tabs">
+      <button 
+        [class.activo]="tabActivo === 'mensual'"
+        (click)="cambiarTab('mensual')"
+        class="tab-btn">
+        <span class="tab-icon">📊</span>
+        Comparativa Mensual
+      </button>
+      <button 
+        [class.activo]="tabActivo === 'diario'"
+        (click)="cambiarTab('diario')"
+        class="tab-btn">
+        <span class="tab-icon">📈</span>
+        Análisis Diario
+      </button>
+    </div>
+  </div>
+
+  <!-- Alerta prominente -->
+  <div class="alerta-inline" *ngIf="diasConAlerta.length > 0">
+    <div class="alerta-texto">
+      ⚠️ <strong>{{ diasConAlerta.length }}</strong> días requieren atención inmediata
+    </div>
+    <span class="alerta-link" (click)="cambiarTab('diario')">
+      Ver detalle →
+    </span>
+  </div>
+
+  <!-- VISTA MENSUAL: 1 GRÁFICO HERO COMPARATIVO -->
+  <div *ngIf="tabActivo === 'mensual'" class="vista-mensual">
+    <div class="grafico-hero">
+      <div class="grafico-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>Comparativa Mensual: {{ nombreMesActual }} vs {{ nombreMesAnterior }}</h3>
+        
+        <!-- Toggle métricas -->
+        <div style="display:flex; gap:6px;">
+          <button (click)="cambiarMetrica('produccion')"
+            [style.background]="vistaMetrica === 'produccion' ? '#0072BC' : '#f1f5f9'"
+            [style.color]="vistaMetrica === 'produccion' ? '#fff' : '#64748b'"
+            style="font-size:12px; font-weight:600; padding:6px 14px; border-radius:8px; border:none; cursor:pointer; transition:all 0.2s;">
+            💧 Producción
+          </button>
+          <button (click)="cambiarMetrica('horas')"
+            [style.background]="vistaMetrica === 'horas' ? '#0072BC' : '#f1f5f9'"
+            [style.color]="vistaMetrica === 'horas' ? '#fff' : '#64748b'"
+            style="font-size:12px; font-weight:600; padding:6px 14px; border-radius:8px; border:none; cursor:pointer; transition:all 0.2s;">
+            ⏱ Horas
+          </button>
+          <button (click)="cambiarMetrica('eficiencia')"
+            [style.background]="vistaMetrica === 'eficiencia' ? '#0072BC' : '#f1f5f9'"
+            [style.color]="vistaMetrica === 'eficiencia' ? '#fff' : '#64748b'"
+            style="font-size:12px; font-weight:600; padding:6px 14px; border-radius:8px; border:none; cursor:pointer; transition:all 0.2s;">
+            ⚡ Eficiencia
+          </button>
+        </div>
+
+        <span class="hint">Click en cualquier barra para ver detalle diario</span>
+      </div>
+      <div class="grafico-canvas">
+        <canvas #comparativoChart></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA DIARIA: ENFOQUE EN ALERTAS -->
+  <div *ngIf="tabActivo === 'diario'" class="vista-diaria">
+    
+    <div class="leyenda-alertas">
+      <div class="leyenda-item">
+        <span class="color-dot normal"></span>
+        <span>Normal (≥ {{ UMBRAL_BAJO }}h)</span>
+      </div>
+      <div class="leyenda-item">
+        <span class="color-dot alerta"></span>
+        <span>Alerta ({{ UMBRAL_CRITICO }}h - {{ UMBRAL_BAJO }}h)</span>
+      </div>
+      <div class="leyenda-item">
+        <span class="color-dot critico"></span>
+        <span>Crítico (< {{ UMBRAL_CRITICO }}h)</span>
+      </div>
+    </div>
+
+    <div class="grafico-wrapper grafico-diario">
+      <div class="grafico-header">
+        <h3>Horas de Bombeo por Día - {{ nombreMesActual }}</h3>
+        <span class="hint">{{ datosActual.length }} días registrados</span>
+      </div>
+      <div class="grafico-canvas">
+        <canvas #horasDiarioChart></canvas>
+      </div>
+    </div>
+
+    <!-- Tabla de alertas más prominente -->
+    <div class="tabla-alertas" *ngIf="diasConAlerta.length > 0">
+      <h3>⚠️ Días que Requieren Atención</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Horas de Bombeo</th>
+            <th>Nivel de Riesgo</th>
+            <th>Producción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let dia of diasConAlerta" 
+              [class.critico]="dia.horas < UMBRAL_CRITICO">
+            <td>{{ dia.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ dia.horas | number:'1.1-1' }} h</td>
+            <td>
+              <span class="badge" [class.badge-critico]="dia.horas < UMBRAL_CRITICO">
+                {{ dia.horas < UMBRAL_CRITICO ? 'Crítico' : 'Alerta' }}
+              </span>
+            </td>
+            <td>{{ formatM3(dia.produccion) }} m³</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>

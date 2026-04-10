@@ -10,6 +10,9 @@ import { Router } from '@angular/router';
   templateUrl: './main-layout.html'
 })
 export class MainLayoutComponent implements OnInit {
+  
+  menuColapsado: boolean = false;
+
   today = new Date().toLocaleDateString('es-PE', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
