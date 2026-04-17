@@ -39,4 +39,11 @@ export class OperacionesService {
       responseType: 'blob'
     });
   }
+
+  verificarParteExistente(estacionId: string, fecha: string): Observable<any> {
+    return this.http.get(`${this.API_URL}/operaciones/verificar`, {
+      params: { estacion_id: estacionId, fecha: fecha }
+    });
+  }
+
 }

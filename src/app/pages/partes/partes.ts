@@ -105,16 +105,8 @@ export class Partes implements OnInit {
   }
 
   // ↓ todo esto es nuevo
-  abrirEditar(parte: any) {
-    this.parteSeleccionado = parte;
-    this.formEditar = this.fb.group({
-      fecha_folio:         [parte.fecha_folio?.substring(0, 10)],
-      estacion_id:         [parte.estacion?.id],
-      totalizador_inicial: [parte.totalizador_inicial],
-      totalizador_final:   [parte.totalizador_final],
-    });
-    this.modalEditarAbierto = true;
-    this.cdr.detectChanges();
+  abrirEditar(parte: any)  {
+    this.router.navigate(['/nuevo-parte'], { queryParams: { id: parte.id } });
   }
 
   cerrarEditar() {

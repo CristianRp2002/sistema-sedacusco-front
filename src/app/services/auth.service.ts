@@ -9,8 +9,6 @@ import { environment } from '../../environments/environment.development';
 })
 export class AuthService {
   private http = inject(HttpClient);
-  
-  // 👈 Ahora es dinámico y profesional
   private readonly API_URL = `${environment.apiUrl}/auth`; 
 
   login(credentials: LoginDto): Observable<LoginResponse> {
