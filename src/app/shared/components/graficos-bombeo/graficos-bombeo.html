@@ -1,21 +1,37 @@
 <div class="container-graficos">
-  
+
   <div class="header-graficos">
     <h2 class="titulo">Análisis de Bombeo</h2>
     <div class="tabs">
-      <button 
+      <button
         [class.activo]="tabActivo === 'mensual'"
         (click)="cambiarTab('mensual')"
         class="tab-btn">
         <span class="tab-icon">📊</span>
         Comparativa Mensual
       </button>
-      <button 
+      <button
         [class.activo]="tabActivo === 'diario'"
         (click)="cambiarTab('diario')"
         class="tab-btn">
         <span class="tab-icon">📈</span>
-        Análisis Diario
+        Horas Diarias
+      </button>
+      <!-- NUEVO: tab de producción acumulada -->
+      <button
+        [class.activo]="tabActivo === 'acumulado'"
+        (click)="cambiarTab('acumulado')"
+        class="tab-btn">
+        <span class="tab-icon">🎯</span>
+        Acumulado vs Meta
+      </button>
+      <!-- NUEVO: tab de distribución -->
+      <button
+        [class.activo]="tabActivo === 'distribucion'"
+        (click)="cambiarTab('distribucion')"
+        class="tab-btn">
+        <span class="tab-icon">🍩</span>
+        Por Estación
       </button>
     </div>
   </div>
@@ -30,13 +46,12 @@
     </span>
   </div>
 
-  <!-- VISTA MENSUAL: 1 GRÁFICO HERO COMPARATIVO -->
+  <!-- ── VISTA MENSUAL COMPARATIVA ── -->
   <div *ngIf="tabActivo === 'mensual'" class="vista-mensual">
     <div class="grafico-hero">
       <div class="grafico-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>Comparativa Mensual: {{ nombreMesActual }} vs {{ nombreMesAnterior }}</h3>
-        
-        <!-- Toggle métricas -->
+        <h3>Comparativa: {{ nombreMesActual }} vs {{ nombreMesAnterior }}</h3>
+
         <div style="display:flex; gap:6px;">
           <button (click)="cambiarMetrica('produccion')"
             [style.background]="vistaMetrica === 'produccion' ? '#0072BC' : '#f1f5f9'"
@@ -58,17 +73,24 @@
           </button>
         </div>
 
-        <span class="hint">Click en cualquier barra para ver detalle diario</span>
+        <span class="hint">Click en barra para detalle diario</span>
       </div>
+
+      <!-- NUEVO: leyenda HTML personalizada -->
+      <div class="leyenda-html">
+        <span class="leg-item"><span class="leg-dot" style="background:#0072BC"></span>{{ nombreMesActual }}</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#94a3b8"></span>{{ nombreMesAnterior }}</span>
+      </div>
+
       <div class="grafico-canvas">
         <canvas #comparativoChart></canvas>
       </div>
     </div>
   </div>
 
-  <!-- VISTA DIARIA: ENFOQUE EN ALERTAS -->
+  <!-- ── VISTA DIARIA CON UMBRAL ── -->
   <div *ngIf="tabActivo === 'diario'" class="vista-diaria">
-    
+
     <div class="leyenda-alertas">
       <div class="leyenda-item">
         <span class="color-dot normal"></span>
@@ -76,17 +98,22 @@
       </div>
       <div class="leyenda-item">
         <span class="color-dot alerta"></span>
-        <span>Alerta ({{ UMBRAL_CRITICO }}h - {{ UMBRAL_BAJO }}h)</span>
+        <span>Alerta ({{ UMBRAL_CRITICO }}h – {{ UMBRAL_BAJO }}h)</span>
       </div>
       <div class="leyenda-item">
         <span class="color-dot critico"></span>
         <span>Crítico (< {{ UMBRAL_CRITICO }}h)</span>
       </div>
+      <!-- NUEVO: indicador de umbral -->
+      <div class="leyenda-item" style="margin-left:auto">
+        <span style="width:20px;height:2px;border-top:2px dashed #f59e0b;display:inline-block;vertical-align:middle;margin-right:4px"></span>
+        <span>Umbral mínimo ({{ UMBRAL_BAJO }}h)</span>
+      </div>
     </div>
 
     <div class="grafico-wrapper grafico-diario">
       <div class="grafico-header">
-        <h3>Horas de Bombeo por Día - {{ nombreMesActual }}</h3>
+        <h3>Horas de Bombeo por Día — {{ nombreMesActual }}</h3>
         <span class="hint">{{ datosActual.length }} días registrados</span>
       </div>
       <div class="grafico-canvas">
@@ -94,7 +121,6 @@
       </div>
     </div>
 
-    <!-- Tabla de alertas más prominente -->
     <div class="tabla-alertas" *ngIf="diasConAlerta.length > 0">
       <h3>⚠️ Días que Requieren Atención</h3>
       <table>
@@ -107,7 +133,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let dia of diasConAlerta" 
+          <tr *ngFor="let dia of diasConAlerta"
               [class.critico]="dia.horas < UMBRAL_CRITICO">
             <td>{{ dia.fecha | date:'dd/MM/yyyy' }}</td>
             <td>{{ dia.horas | number:'1.1-1' }} h</td>
@@ -121,7 +147,84 @@
         </tbody>
       </table>
     </div>
+  </div>
 
+  <!-- NUEVO: VISTA ACUMULADO VS META -->
+  <div *ngIf="tabActivo === 'acumulado'" class="vista-acumulado">
+    <div class="grafico-hero">
+      <div class="grafico-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>Producción Acumulada vs Meta — {{ nombreMesActual }}</h3>
+        <span class="hint">Meta mensual: {{ formatM3(metaMensual) }} m³</span>
+      </div>
+
+      <div class="leyenda-html">
+        <span class="leg-item"><span class="leg-dot" style="background:#0072BC"></span>Acumulado {{ nombreMesActual }}</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#94a3b8"></span>Acumulado {{ nombreMesAnterior }}</span>
+        <span class="leg-item">
+          <span style="width:20px;height:2px;border-top:2px dashed #f59e0b;display:inline-block;vertical-align:middle;margin-right:4px"></span>
+          Meta
+        </span>
+      </div>
+
+      <div class="grafico-canvas">
+        <canvas #acumuladoChart></canvas>
+      </div>
+
+      <!-- NUEVO: indicador de progreso hacia meta -->
+      <div class="progreso-meta">
+        <div class="progreso-label">
+          <span>Progreso hacia la meta</span>
+          <strong>{{ (produccionAcumuladaTotal / metaMensual * 100) | number:'1.0-0' }}%</strong>
+        </div>
+        <div class="progreso-bar-bg">
+          <div class="progreso-bar-fill"
+            [style.width.%]="Math.min(produccionAcumuladaTotal / metaMensual * 100, 100)"
+            [class.completo]="produccionAcumuladaTotal >= metaMensual">
+          </div>
+        </div>
+        <p class="progreso-sub">
+          {{ formatM3(produccionAcumuladaTotal) }} m³ de {{ formatM3(metaMensual) }} m³
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUEVO: VISTA DISTRIBUCIÓN POR ESTACIÓN -->
+  <div *ngIf="tabActivo === 'distribucion'" class="vista-distribucion">
+    <div class="distribucion-layout">
+      <div class="grafico-dona">
+        <div class="grafico-header">
+          <h3>Distribución por Estación — {{ nombreMesActual }}</h3>
+        </div>
+        <div class="grafico-canvas" style="height: 280px;">
+          <canvas #distribucionChart></canvas>
+        </div>
+      </div>
+
+      <div class="tabla-distribucion">
+        <table>
+          <thead>
+            <tr>
+              <th>Estación</th>
+              <th>Producción (m³)</th>
+              <th>% Total</th>
+              <th>Eficiencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let est of resumenEstaciones; let i = index">
+              <td>
+                <span class="est-dot" [style.background]="coloresEstaciones[i % coloresEstaciones.length]"></span>
+                {{ est.nombre }}
+              </td>
+              <td><strong>{{ formatM3(est.produccion) }}</strong></td>
+              <td>{{ (est.produccion / totalProduccionDistribucion * 100) | number:'1.0-0' }}%</td>
+              <td>{{ est.eficiencia | number:'1.1-1' }} m³/h</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 </div>

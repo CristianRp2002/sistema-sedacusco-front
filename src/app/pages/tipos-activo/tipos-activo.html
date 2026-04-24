@@ -33,21 +33,18 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Editar tipo -->
           <button (click)="editarTipo(tipo)"
             class="p-2 rounded-xl hover:bg-blue-50 transition-colors"
             style="color: #0072BC;">
             <span class="material-icons" style="font-size: 16px;">edit</span>
           </button>
 
-          <!-- Eliminar tipo -->
           <button (click)="eliminarTipo(tipo)"
             class="p-2 rounded-xl hover:bg-red-50 transition-colors"
             style="color: #dc2626;">
             <span class="material-icons" style="font-size: 16px;">delete</span>
           </button>
 
-          <!-- Agregar campo (ya existe) -->
           <button (click)="abrirModalCampo(tipo)"
             class="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-bold transition-all hover:shadow-md"
             style="background: #eff6ff; color: #0072BC;">
@@ -66,52 +63,72 @@
 
         <div class="grid grid-cols-1 gap-2">
           <div *ngFor="let campo of tipo.campos"
-            class="flex items-center justify-between px-4 py-3 rounded-xl"
+            class="px-4 py-3 rounded-xl"
             style="background: #f8fafc; border: 1px solid #f1f5f9;">
 
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg flex items-center justify-center"
-                [style.background]="colorPorTipo(campo.tipo_input) + '18'">
-                <span class="material-icons"
-                  [style.color]="colorPorTipo(campo.tipo_input)"
-                  style="font-size: 16px;">
-                  {{ iconoPorTipo(campo.tipo_input) }}
-                </span>
-              </div>
-
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="text-sm font-bold" style="color: #1e293b;">
-                    {{ campo.etiqueta }}
-                  </span>
-                  <span *ngIf="campo.requerido"
-                    class="text-xs px-2 py-0.5 rounded-full font-bold"
-                    style="background: #fef2f2; color: #dc2626;">
-                    Requerido
-                  </span>
-                  <span *ngIf="campo.unidad"
-                    class="text-xs px-2 py-0.5 rounded-full"
-                    style="background: #f1f5f9; color: #64748b;">
-                    {{ campo.unidad }}
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+                  [style.background]="colorPorTipo(campo.tipo_input) + '18'">
+                  <span class="material-icons"
+                    [style.color]="colorPorTipo(campo.tipo_input)"
+                    style="font-size: 16px;">
+                    {{ iconoPorTipo(campo.tipo_input) }}
                   </span>
                 </div>
-                <p class="text-xs mt-0.5" style="color: #94a3b8;">
-                  {{ campo.nombre_campo }} · {{ campo.tipo_input }} · orden {{ campo.orden }}
-                </p>
-              </div>
-            </div>
 
-            <div class="flex items-center gap-1">
-              <button (click)="editarCampo(campo, tipo)"
-                class="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-                style="color: #0072BC;">
-                <span class="material-icons" style="font-size: 14px;">edit</span>
-              </button>
-              <button (click)="eliminarCampo(campo)"
-                class="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                style="color: #dc2626;">
-                <span class="material-icons" style="font-size: 14px;">delete</span>
-              </button>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold" style="color: #1e293b;">
+                      {{ campo.etiqueta }}
+                    </span>
+                    <span *ngIf="campo.requerido"
+                      class="text-xs px-2 py-0.5 rounded-full font-bold"
+                      style="background: #fef2f2; color: #dc2626;">
+                      Requerido
+                    </span>
+                    <span *ngIf="campo.unidad"
+                      class="text-xs px-2 py-0.5 rounded-full"
+                      style="background: #f1f5f9; color: #64748b;">
+                      {{ campo.unidad }}
+                    </span>
+                  </div>
+                  <p class="text-xs mt-0.5" style="color: #94a3b8;">
+                    {{ campo.nombre_campo }} · {{ campo.tipo_input }} · orden {{ campo.orden }}
+                    <span *ngIf="campo.config?.min !== undefined || campo.config?.max !== undefined">
+                      · rango: {{ campo.config?.min ?? '-∞' }} - {{ campo.config?.max ?? '+∞' }}
+                    </span>
+                    <span *ngIf="campo.config?.decimales !== undefined">
+                      · {{ campo.config?.decimales }} decimales
+                    </span>
+                    <span *ngIf="campo.config?.opciones?.length">
+                      · {{ campo.config?.opciones?.length }} opciones
+                    </span>
+                  </p>
+                  
+                  <!-- Mostrar opciones como chips -->
+                  <div *ngIf="campo.config?.opciones?.length" class="mt-2 flex flex-wrap gap-1">
+                    <span *ngFor="let opcion of campo.config.opciones"
+                      class="text-xs px-2 py-0.5 rounded-full"
+                      style="background: #eff6ff; color: #0072BC;">
+                      {{ opcion }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1">
+                <button (click)="editarCampo(campo, tipo)"
+                  class="p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                  style="color: #0072BC;">
+                  <span class="material-icons" style="font-size: 14px;">edit</span>
+                </button>
+                <button (click)="eliminarCampo(campo)"
+                  class="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                  style="color: #dc2626;">
+                  <span class="material-icons" style="font-size: 14px;">delete</span>
+                </button>
+              </div>
             </div>
 
           </div>
@@ -166,6 +183,7 @@
 
         <app-form-input
           label="Orden"
+          type="number"
           placeholder="Ej: 1"
           formControlName="orden">
         </app-form-input>
@@ -184,10 +202,66 @@
         </div>
       </div>
 
+      <!-- Configuración para tipo NÚMERO -->
+      <div *ngIf="tipoSeleccionadoEsNumero" class="grid grid-cols-3 gap-3">
+        <app-form-input
+          label="Mínimo"
+          type="number"
+          placeholder="Ej: 0"
+          formControlName="config_min"
+          [opcional]="true">
+        </app-form-input>
+
+        <app-form-input
+          label="Máximo"
+          type="number"
+          placeholder="Ej: 100"
+          formControlName="config_max"
+          [opcional]="true">
+        </app-form-input>
+
+        <app-form-input
+          label="Decimales"
+          type="number"
+          placeholder="0, 1, 2..."
+          formControlName="config_decimales"
+          [opcional]="true">
+        </app-form-input>
+      </div>
+
+      <!-- Configuración para tipo SELECTOR -->
+      <div *ngIf="tipoSeleccionadoEsSelector">
+        <label class="block text-xs font-bold mb-1.5" style="color: #475569;">
+          Opciones <span style="color: #dc2626;">*</span>
+        </label>
+        <input
+          type="text"
+          formControlName="config_opciones"
+          placeholder="Ej: Encendido, Apagado, Falla"
+          class="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+          [class.border-red-300]="campoForm.get('config_opciones')?.invalid && campoForm.get('config_opciones')?.touched"
+          style="border-color: #e2e8f0; color: #1e293b;">
+        <p class="text-xs mt-1" style="color: #94a3b8;">
+          Separa las opciones con comas · Mínimo 2 opciones
+        </p>
+        
+        <!-- Preview de opciones -->
+        <div *ngIf="previewOpciones.length" class="mt-2 flex flex-wrap gap-1">
+          <span *ngFor="let opt of previewOpciones"
+            class="text-xs px-2 py-1 rounded-full"
+            style="background: #f0f9ff; color: #0369a1;">
+            {{ opt }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Botones -->
       <div class="flex gap-3 pt-2">
         <button type="button" (click)="cerrarModal()"
           class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
-          style="border-color: #e2e8f0; color: #64748b;">Cancelar</button>
+          style="border-color: #e2e8f0; color: #64748b;">
+          Cancelar
+        </button>
         <button type="submit" [disabled]="campoForm.invalid"
           class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
           style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
@@ -198,7 +272,7 @@
     </form>
   </app-modal>
 
-  <!-- Modal Nuevo Tipo de Activo -->
+  <!-- Modal Tipo de Activo (sin cambios) -->
   <app-modal
     [abierto]="modalTipoAbierto"
     [titulo]="tipoEditando ? 'Editar Tipo de Activo' : 'Nuevo Tipo de Activo'"
@@ -224,10 +298,13 @@
         <span class="material-icons mt-0.5" style="font-size: 18px;">error_outline</span>
         <span class="text-sm font-medium">{{ errorTipo }}</span>
       </div>
+
       <div class="flex gap-3 pt-2">
         <button type="button" (click)="cerrarModalTipo()"
           class="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
-          style="border-color: #e2e8f0; color: #64748b;">Cancelar</button>
+          style="border-color: #e2e8f0; color: #64748b;">
+          Cancelar
+        </button>
         <button type="submit" [disabled]="tipoForm.invalid"
           class="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
           style="background: linear-gradient(135deg, #0072BC, #29ABE2);">
